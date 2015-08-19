@@ -16,7 +16,7 @@
 		'use strict';
 		let formElement = document.getElementById("form");
 		
-		JForm.editors.extend("number", {
+		jform.editors.extend("number", {
 			events: {
 				'change': 'triggerChange',
 				'keypress': '_onKeyPress'
@@ -29,7 +29,7 @@
 				return parseFloat(this.el.value)
 			},
 			_onKeyPress: function (evt) {
-	
+				console.log('keypress')
 				var real_val = String.fromCharCode(evt.which);
     			if (evt.which == 8) real_val = real_val.substr(0, real_val.length - 2);
 				
@@ -40,13 +40,13 @@
 			}
 		});
 		
-		JForm.validators.addMessage('required', 'the field: {{name}} is required')
+		jform.validators.addMessage('required', 'the field: {{name}} is required')
 		
 		
 		let items = [{name: 'test', value: 'test'}]
 		items.push({ name: 'test2', value: 'test2'})
 		
-		let form = new JForm.Form({
+		let form = jform.create({
 			el: formElement,
 			editors: {
 				list: {

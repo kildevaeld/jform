@@ -1,12 +1,25 @@
 /// <reference path="../node_modules/views/views.d.ts" />
 //// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 
-import {Form} from './Form'
+import {Form, FormOptions} from './Form'
 import * as ed from './Editors'
 import {Validator, ValidateFunc} from './validator'
-export  default Form
+
 
 export * from './Form'
+
+export function create (elm:FormOptions|string, options:FormOptions={}): Form {
+	if (typeof elm === 'string') {
+		let e = <HTMLElement>document.querySelector(<string>elm);
+		if (!e) return null
+		options.el = e
+		
+	} else {
+		options = elm
+	}
+	
+	return new Form(options)
+}
 
 export module editors {
 	

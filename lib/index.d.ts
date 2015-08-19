@@ -1,9 +1,9 @@
 /// <reference path="../node_modules/views/views.d.ts" />
-import { Form } from './Form';
+import { Form, FormOptions } from './Form';
 import * as ed from './Editors';
 import { ValidateFunc } from './validator';
-export default Form;
 export * from './Form';
+export declare function create(elm: FormOptions | string, options?: FormOptions): Form;
 export declare module editors {
     var Editor: typeof ed.Editor;
     function extend(name: string, prototype: any): ed.IEditor;

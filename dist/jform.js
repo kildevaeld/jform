@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define(["views"], factory);
 	else if(typeof exports === 'object')
-		exports["JForm"] = factory(require("views"));
+		exports["jform"] = factory(require("views"));
 	else
-		root["JForm"] = factory(root["views"]);
+		root["jform"] = factory(root["views"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_2__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -62,8 +62,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Form_1 = __webpack_require__(1);
 	var ed = __webpack_require__(3);
 	var validator_1 = __webpack_require__(6);
-	exports.default = Form_1.Form;
 	__export(__webpack_require__(1));
+	function create(elm, options) {
+	    if (options === void 0) { options = {}; }
+	    if (typeof elm === 'string') {
+	        var e = document.querySelector(elm);
+	        if (!e)
+	            return null;
+	        options.el = e;
+	    }
+	    else {
+	        options = elm;
+	    }
+	    return new Form_1.Form(options);
+	}
+	exports.create = create;
 	var editors;
 	(function (editors) {
 	    editors.Editor = ed.Editor;

@@ -68,7 +68,7 @@ gulp.task('build:unbundle', ['build:typescript'], function () {
         ]
     },
     output: {
-      library: "JForm",
+      library: "jform",
       libraryTarget: "umd",
       filename: 'jform.js'
     },
