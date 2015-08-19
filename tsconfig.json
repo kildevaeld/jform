@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "isolatedModules": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": true,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true
+    },
+    "filesGlob": [
+        "./src/**/*.ts",
+        "./src/**/*.tsx",
+        "!./node_modules/**/*.ts"
+    ],
+    "files": [
+        "./src/Editors.ts",
+        "./src/Form.d.ts",
+        "./src/Form.ts",
+        "./src/Types.ts",
+        "./src/index.ts"
+    ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "jsform",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "views": "git+https://github.com/kildevaeld/views.git"
+  },
+  "devDependencies": {
+    "del": "^1.2.0",
+    "gulp": "^3.9.0",
+    "gulp-typescript": "^2.8.0",
+    "gulp-webpack": "^1.5.0",
+    "merge2": "^0.3.6"
+  },
+  "typescript": {
+    "definition": "jsform.d.ts"
+  }
+}
