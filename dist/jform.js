@@ -445,10 +445,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	            promises = promises.concat(p);
 	        }
-	        return views_1.utils.objectToPromise((_a = {}, _a[editor.name] = all(promises), _a)).catch(function (err) {
+	        return all(promises).catch(function (err) {
 	            throw new Types_1.FormEditorValidationError(editor.name, err);
 	        });
-	        var _a;
 	    };
 	    Form.prototype.validate = function () {
 	        var _this = this;
@@ -957,7 +956,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var types_1 = __webpack_require__(8);
 	var views_1 = __webpack_require__(2);
 	function errorToPromise(err) {
-	    if (err instanceof Error) {
+	    if (err instanceof Error || err instanceof types_1.FormValidationError) {
 	        return Promise.reject(err);
 	    }
 	    else if (views_1.utils.isPromise(err)) {

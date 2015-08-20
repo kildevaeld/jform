@@ -5,7 +5,7 @@ import {utils} from 'views'
 export type ValidateFunc = (el:HTMLElement, value:any) => FormValidationError|Promise<void>
 
 export function errorToPromise (err?:any): Promise<void> {
-	if (err instanceof Error) {
+	if (err instanceof Error || err instanceof FormValidationError) {
   	return Promise.reject(err)
   } else if (utils.isPromise(err)) {
    	return err

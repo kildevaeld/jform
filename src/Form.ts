@@ -193,10 +193,9 @@ export class Form extends View<HTMLFormElement> {
 
       promises = promises.concat(p);
     }
-
-    return utils.objectToPromise({[editor.name]:<any>all(promises)}).catch(function (err) {
+    return all(promises).catch(function (err) {
       throw new FormEditorValidationError(editor.name, err)
-    });
+    })
   }
 
   public validate (): Promise<{[key:string]:FormEditorValidationError[]}> {
