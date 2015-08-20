@@ -1,6 +1,6 @@
 import {View, ViewOptions, utils} from 'views'
-import * as editors from './Editors'
-import {IEditor} from './Editors'
+import * as editors from './editors/index'
+import {IEditor} from './editors/editor'
 import {FormError, FormValidationError,FormEditorValidationError, IValidator, IValidation} from './Types'
 import {Validator} from './validator'
 
@@ -13,7 +13,7 @@ export interface FormOptions extends ViewOptions {
   attribute?: string
   editors?: {[key: string]: IEditorOptions}
   strict?:boolean
-  validator?: IValidator 
+  validator?: IValidator
 }
 
 function flatten(arr) {
@@ -24,44 +24,44 @@ function flatten(arr) {
 
 function renderMessage(view:IEditor, msg:string) {
   if (!msg) return null
-  return msg.replace(/\{{name\}}/,view.name)
+  return msg.replace(/\{{name\}}/,view.label||view.name)
 }
 
 
 function asyncEach<T>(array:T[], iterator:(value:T) => Promise<void>, context?:any, accumulate = false): Promise<void> {
-  
+
   return new Promise<void>(function (resolve, reject) {
     let i = 0, len = array.length,
       errors = [];
     function next (err, result?:any) {
       if (err && !accumulate) return reject(err);
       if (err) errors.push(err);
-      if (i === len) 
+      if (i === len)
         return errors.length ? reject(flatten(errors)) : resolve();
-      
+
       iterator(array[i++]).then(function (r) { next(null, r); }, next);
     }
-    
-    next(null);  
-  
+
+    next(null);
+
   });
-  
+
 }
 
 
 
 function all<T>(array:Promise<T>[]): Promise<T[]> {
   let errors = [], len = array.length, results = Array<T>(len), i = 0, count = len - 0;
- 
-  if (len === 0) return Promise.resolve() 
- 
+
+  if (len === 0) return Promise.resolve()
+
   return new Promise(function (resolve, reject) {
-    
-    function done (promise:Promise<T>, index:number) { 
+
+    function done (promise:Promise<T>, index:number) {
       promise.then(function (result) {
         results[index] = result;
         //console.log('count',count)
-        if ((--count) === 0) 
+        if ((--count) === 0)
           return errors.length ? reject(flatten(errors)) : resolve(results.length ? results : null);
       }, function (err) {
         errors.push(err)
@@ -69,12 +69,12 @@ function all<T>(array:Promise<T>[]): Promise<T[]> {
           reject(flatten(errors));
       })
     }
-    
+
     for (i; i<len;i++) {
-      
-      done(array[i], i);  
+
+      done(array[i], i);
     }
-    
+
   });
 }
 
@@ -91,30 +91,30 @@ export class Form extends View<HTMLFormElement> {
   private _editors: EditorMap
   private _validator: IValidator
   private _validations: {[key: string]: IValidation[]}
-  
-  
+
+
   public strict: boolean
- 
- 
+
   constructor (options?: FormOptions) {
-    
+
     if (options != null) {
       options = utils.extend({},Form.defaults, options)
     }
-  
+
     super(options);
 
     this.strict = options.strict||this.strict||false
-    
+
     this._validator = options.validator|| new Validator();
     this._validations = {};
-    
-    
+
+
     this._editors = this.getElements(this.el, options)
-    
+
     for (let k in this._editors) {
-      this._editors[k].render()
+      this._editors[k].render();
     }
+
 
   }
 
@@ -129,10 +129,10 @@ export class Form extends View<HTMLFormElement> {
   get editors (): EditorMap {
     return utils.extend({},this._editors);
   }
-  
+
   setValue (values: FormValueMap): any {
     this.trigger("before:setvalue")
-    
+
     for (let key in values) {
       if (this.editors[key]) {
         this.trigger('before:setvalue:' + key)
@@ -152,7 +152,7 @@ export class Form extends View<HTMLFormElement> {
     }
 
     this.trigger('setvalue')
-    
+
     return this
   }
 
@@ -167,35 +167,35 @@ export class Form extends View<HTMLFormElement> {
     return values;
   }
 
-  public validate (): Promise<{[key:string]:FormEditorValidationError[]}> { 
+  public validate (): Promise<{[key:string]:FormEditorValidationError[]}> {
     function errorToPromise (err?:any): Promise<void> {
       if (err instanceof Error) {
         return Promise.reject(err)
       } else if (utils.isPromise(err)) {
         return err
-      } 
+      }
       return Promise.resolve(null)
     }
-    
+
     let editors: IEditor[] = utils.values<IEditor>(this.editors);
     var self = this;
     return asyncEach(editors, (editor) => {
-      
+
       let e = errorToPromise(editor.validate());
       let promises = [];
-      
+
       if (e) promises.push(e);
-     
-      
+
+
       if (this._validations[editor.name]) {
         let value = editor.getValue()
         let p = this._validations[editor.name].map((v) => {
           return errorToPromise(this._validator.validate(editor.el, value, v))
         });
-        
+
         promises = promises.concat(p);
       }
-      
+
       return utils.objectToPromise({[editor.name]:<any>all(promises)}).catch(function (err) {
         throw new FormEditorValidationError(editor.name, err)
       });
@@ -206,18 +206,18 @@ export class Form extends View<HTMLFormElement> {
           return {message:renderMessage(this.editors[err.name],e.message||Validator.messages[e.name]), value:e.value, name:e.name}
         });
       });
-      
+
       return map;
     })
-    
+
   }
 
 
-  private getElements (formEl: HTMLElement, options: FormOptions): {[key: string]: editors.IEditor} {
+  private getElements (formEl: HTMLElement, options: FormOptions): {[key: string]: IEditor} {
 
     let elms: NodeList = formEl.querySelectorAll(options.selector)
     let i: number, elm: HTMLElement, editorName: string, required: string
-   
+
     let output: EditorMap = {}
 
     for (i=0;i<elms.length; i++) {
@@ -228,7 +228,7 @@ export class Form extends View<HTMLFormElement> {
 
       editorName = editorName||this._getType(elm)
       let Editor = editors.get(editorName)
-      
+
       if (Editor == null) {
         let msg = `editor not found: '${editorName}' for '${name}'`
         if (this.strict)
@@ -246,21 +246,21 @@ export class Form extends View<HTMLFormElement> {
       opts.name = name
       opts.el = elm
 
-      if (required != null) 
+      if (required != null)
         (opts.validations||(opts.validations = [])).push({
           name: 'required'
         });
-        
+
       let editor = new (<any>Editor)(opts)
-      
+
       if (opts.validations && this._validator) {
-       
+
         if (this._validator.bootstrap) {
           this._validator.bootstrap(elm);
-        } 
-        
+        }
+
         this._validations[name] = opts.validations
-       
+
       }
 
       this.listenTo(editor, 'change', this._onEditorChange);
@@ -268,21 +268,21 @@ export class Form extends View<HTMLFormElement> {
       /*if (output[name]) {
         let editors = Array.isArray(output[name]) ? output[name] : (output[name] = [output[name]])
       } else {
-        
+
       }*/
-      output[name] = editor;  
-      
+      output[name] = editor;
+
     }
 
     return output
 
   }
 
-  private _onEditorChange(editor: editors.IEditor) {
+  private _onEditorChange(editor: IEditor) {
     this.trigger('change', editor)
   }
 
-  private _onEditorInvalid(editor: editors.IEditor, error: FormValidationError) {
+  private _onEditorInvalid(editor: IEditor, error: FormValidationError) {
     this.trigger('invalid', editor, error)
   }
 

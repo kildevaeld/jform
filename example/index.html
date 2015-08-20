@@ -3,28 +3,35 @@
 		<script src='../node_modules/views/dist/views.js'></script>
 		<script src="../dist/jform.js"></script>
 	</head>
-	
+
 	<body>
 		<form id="form">
 			<input type="text" name="first_name" required="required">
 			<input type="text" name="last_name">
 			<input type="text" name="age" form-editor="number">
 			<div name="list" form-editor="list"></div>
+			<select name="select">
+				<option value="value1">what</option>
+				<option value="value2">what what</option>
+			</select>
 		</form>
 		<button id="button">Test</button>
 	<script>
 		'use strict';
 		let formElement = document.getElementById("form");
-		
-		jform.editors.extend("number", {
+
+		/*jform.editors.extend("number", {
 			events: {
 				'change': 'triggerChange',
 				'keypress': '_onKeyPress'
 			},
+			initialize: function () {
+				console.log('init number')
+			},
 			setValue: function (value) {
 				this.el.value = value
 			},
-			
+
 			getValue: function () {
 				return parseFloat(this.el.value)
 			},
@@ -32,52 +39,55 @@
 				console.log('keypress')
 				var real_val = String.fromCharCode(evt.which);
     			if (evt.which == 8) real_val = real_val.substr(0, real_val.length - 2);
-				
+
 				if (isNaN(parseFloat(real_val))) {
 					evt.preventDefault()
-					
-				} 
+
+				}
 			}
-		});
-		
+		});*/
+
 		jform.validators.addMessage('required', 'the field: {{name}} is required')
-		
-		
+
+
 		let items = [{name: 'test', value: 'test'}]
 		items.push({ name: 'test2', value: 'test2'})
-		
+
 		let form = jform.create({
 			el: formElement,
 			editors: {
 				list: {
 					items: items
+				},
+				first_name: {
+					label: 'Fornavn'
 				}
 			}
 		});
 		console.log(form)
-		
+
 		let button = document.getElementById('button')
-		
+
 		button.addEventListener("click", function () {
 			form.validate().then(function (err) {
-				console.log('valid', err)	
+				console.log('valid', err)
 			}).catch(function (er) {
 				console.log('errpr', er)
 			})
 			console.log(form.val)
 			form.editors.list._selectView.collection.add({value:'testtest', name: 'raprap'})
 		})
-		
+
 		form.on('change', function (editor) {
 			console.log('editor change', editor.name, editor.getValue())
 		})
-		
-		form.val = {first_name:'Lars', last_name: 'Kofoed', age:12}
-		
-		
+
+		form.val = {first_name:'Lars', last_name: 'Kofoed', age:12, select:{text:'what what', value:'value2'}}
+
+
 	</script>
 	<script src='./main.js'></script>
 	</body>
-	
-	
+
+
 </html>

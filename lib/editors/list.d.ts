@@ -1,6 +1,6 @@
 import { View, IModel, CollectionViewOptions, Model } from 'views';
-import { IEditor, EditorOptions } from '../Editors';
-import { FormValidationError } from '../Types';
+import { IEditor, EditorOptions } from './editor';
+import { FormValidationError } from '../types';
 export interface ListEditorOptions<U extends IModel> extends CollectionViewOptions, EditorOptions {
     items?: U[];
     values?: U[];

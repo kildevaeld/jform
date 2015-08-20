@@ -59,9 +59,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	function __export(m) {
 	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	}
-	var Form_1 = __webpack_require__(1);
+	var form_1 = __webpack_require__(1);
 	var ed = __webpack_require__(3);
-	var validator_1 = __webpack_require__(6);
+	var validator_1 = __webpack_require__(11);
 	__export(__webpack_require__(1));
 	function create(elm, options) {
 	    if (options === void 0) { options = {}; }
@@ -74,18 +74,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    else {
 	        options = elm;
 	    }
-	    return new Form_1.Form(options);
+	    return new form_1.Form(options);
 	}
 	exports.create = create;
 	var editors;
 	(function (editors) {
-	    editors.Editor = ed.Editor;
+	    editors.Editor = editors.Editor;
 	    function extend(name, prototype) {
-	        var editor = ed.Editor.extend(prototype, {});
+	        var editor = editors.Editor.extend(prototype, {});
 	        ed.set(editor, name);
 	        return editor;
 	    }
 	    editors.extend = extend;
+	    function get(name) {
+	        return ed.get(name);
+	    }
+	    editors.get = get;
 	})(editors = exports.editors || (exports.editors = {}));
 	var validators;
 	(function (validators) {
@@ -113,8 +117,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var views_1 = __webpack_require__(2);
 	var editors = __webpack_require__(3);
-	var Types_1 = __webpack_require__(4);
-	var validator_1 = __webpack_require__(6);
+	var Types_1 = __webpack_require__(6);
+	var validator_1 = __webpack_require__(11);
 	function flatten(arr) {
 	    return arr.reduce(function (flat, toFlatten) {
 	        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
@@ -123,7 +127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function renderMessage(view, msg) {
 	    if (!msg)
 	        return null;
-	    return msg.replace(/\{{name\}}/, view.name);
+	    return msg.replace(/\{{name\}}/, view.label || view.name);
 	}
 	function asyncEach(array, iterator, context, accumulate) {
 	    if (accumulate === void 0) { accumulate = false; }
@@ -306,7 +310,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            /*if (output[name]) {
 	              let editors = Array.isArray(output[name]) ? output[name] : (output[name] = [output[name]])
 	            } else {
-	              
+	      
 	            }*/
 	            output[name_1] = editor;
 	        }
@@ -347,6 +351,100 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/// <reference path="../../node_modules/views/views.d.ts" />
+	var input_editor_1 = __webpack_require__(4);
+	var list_1 = __webpack_require__(7);
+	var number_1 = __webpack_require__(9);
+	var select_1 = __webpack_require__(10);
+	var editors = {
+	    input: input_editor_1.InputEditor,
+	    text: input_editor_1.InputEditor,
+	    checkbox: input_editor_1.InputEditor,
+	    radio: input_editor_1.InputEditor,
+	    textarea: input_editor_1.InputEditor,
+	    list: list_1.ListEditor,
+	    number: number_1.NumberEditor,
+	    select: select_1.SelectEditor
+	};
+	function has(editor) {
+	    return get(editor) != null;
+	}
+	exports.has = has;
+	function get(editor) {
+	    return editors[editor];
+	}
+	exports.get = get;
+	function set(editor, name) {
+	    editors[name] = editor;
+	}
+	exports.set = set;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    __.prototype = b.prototype;
+	    d.prototype = new __();
+	};
+	var editor_1 = __webpack_require__(5);
+	var views_1 = __webpack_require__(2);
+	var InputEditor = (function (_super) {
+	    __extends(InputEditor, _super);
+	    function InputEditor() {
+	        _super.apply(this, arguments);
+	    }
+	    Object.defineProperty(InputEditor.prototype, "events", {
+	        get: function () {
+	            return {
+	                'change': '_onChange'
+	            };
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    InputEditor.prototype.setValue = function (value) {
+	        if (this.el.nodeName === 'INPUT' && !!~['checkbox', 'radio'].indexOf(this.el.type)) {
+	            this.el.checked = !!value;
+	        }
+	        else if (this.el.nodeName === 'INPUT' && this.el.type === 'file') {
+	        }
+	        else {
+	            this.el.value = (value == null ? "" : value);
+	        }
+	    };
+	    InputEditor.prototype.getValue = function () {
+	        if (this.el.nodeName === 'INPUT' && ~['checkbox', 'radio'].indexOf(this.el.type)) {
+	            return this.el.checked;
+	        }
+	        else if (this.el.nodeName === 'INPUT' && this.el.type === 'file') {
+	            return this.el.files;
+	        }
+	        return (this.el.value === '' ? null : this.el.value);
+	    };
+	    InputEditor.prototype.clear = function () {
+	        this.el.value = '';
+	        this.setDefault();
+	    };
+	    InputEditor.prototype._onChange = function () {
+	        var current = this.getValue();
+	        if (views_1.utils.equal(current, this._prev)) {
+	            return;
+	        }
+	        this.triggerChange();
+	    };
+	    return InputEditor;
+	})(editor_1.Editor);
+	exports.InputEditor = InputEditor;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __extends = (this && this.__extends) || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() { this.constructor = d; }
@@ -354,9 +452,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = new __();
 	};
 	var views_1 = __webpack_require__(2);
-	var Types_1 = __webpack_require__(4);
-	var list_1 = __webpack_require__(5);
-	//import {View, ViewOptions, IView, IEventEmitter, utils} from 'views/lib/index'
+	var Types_1 = __webpack_require__(6);
 	var AbstractClassError = (function (_super) {
 	    __extends(AbstractClassError, _super);
 	    function AbstractClassError() {
@@ -379,7 +475,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!options || !options.name) {
 	            throw new EditorError("no name specified");
 	        }
+	        this.label = options.label;
 	        this._name = options.name;
+	        this._defaultValue = options.defaultValue;
 	        _super.call(this, options);
 	    }
 	    Object.defineProperty(Editor.prototype, "name", {
@@ -409,60 +507,67 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Editor.prototype.triggerChange = function (e) {
 	        this.triggerMethod('change', this);
 	    };
+	    Editor.prototype.render = function () {
+	        this.undelegateEvents();
+	        _super.prototype.render.call(this);
+	        this.delegateEvents();
+	        return this;
+	    };
+	    Editor.prototype.setDefault = function () {
+	        if (this._defaultValue != null)
+	            this.setValue(this._defaultValue);
+	    };
 	    return Editor;
-	})(views_1.View);
+	})(views_1.TemplateView);
 	exports.Editor = Editor;
-	var InputEditor = (function (_super) {
-	    __extends(InputEditor, _super);
-	    function InputEditor() {
-	        _super.apply(this, arguments);
+	var CollectionEditor = (function (_super) {
+	    __extends(CollectionEditor, _super);
+	    function CollectionEditor(options) {
+	        if (!options || !options.name) {
+	            throw new EditorError("no name specified");
+	        }
+	        this._name = options.name;
+	        this._defaultValue = options.defaultValue;
+	        _super.call(this, options);
 	    }
-	    Object.defineProperty(InputEditor.prototype, "events", {
+	    Object.defineProperty(CollectionEditor.prototype, "name", {
 	        get: function () {
-	            return {
-	                'change': '_onChange'
-	            };
+	            return this._name;
 	        },
 	        enumerable: true,
 	        configurable: true
 	    });
-	    InputEditor.prototype.setValue = function (value) {
-	        this.el.value = value;
+	    Object.defineProperty(CollectionEditor.prototype, "value", {
+	        get: function () {
+	            return this.getValue();
+	        },
+	        set: function (value) {
+	            this.setValue(value);
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    CollectionEditor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
+	    CollectionEditor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
+	    CollectionEditor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
+	    // no-op
+	    CollectionEditor.prototype.validate = function () {
+	        return null;
 	    };
-	    InputEditor.prototype.getValue = function () {
-	        return this.el.value === '' ? null : this.el.value;
+	    CollectionEditor.prototype.triggerChange = function (e) {
+	        this.triggerMethod('change', this);
 	    };
-	    InputEditor.prototype._onChange = function () {
-	        var current = this.getValue();
-	        if (views_1.utils.equal(current, this._prev)) {
-	            return;
-	        }
-	        this.triggerChange();
+	    CollectionEditor.prototype.setDefault = function () {
+	        if (this._defaultValue != null)
+	            this.setValue(this._defaultValue);
 	    };
-	    return InputEditor;
-	})(Editor);
-	exports.InputEditor = InputEditor;
-	var editors = {
-	    text: InputEditor,
-	    textarea: InputEditor,
-	    list: list_1.ListEditor
-	};
-	function has(editor) {
-	    return get(editor) != null;
-	}
-	exports.has = has;
-	function get(editor) {
-	    return editors[editor];
-	}
-	exports.get = get;
-	function set(editor, name) {
-	    editors[name] = editor;
-	}
-	exports.set = set;
+	    return CollectionEditor;
+	})(views_1.CollectionView);
+	exports.CollectionEditor = CollectionEditor;
 
 
 /***/ },
-/* 4 */
+/* 6 */
 /***/ function(module, exports) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -513,7 +618,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -523,7 +628,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = new __();
 	};
 	var views_1 = __webpack_require__(2);
-	var Types_1 = __webpack_require__(4);
+	var types_1 = __webpack_require__(8);
 	var Template = "\n<select></select>\n<ul class=\"selected-list\"></ul>\n";
 	var SelectView = views_1.CollectionView.extend({
 	    tagName: 'select',
@@ -533,7 +638,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return item.cid === cid;
 	            });
 	            if (child == null) {
-	                throw new Types_1.FormError("could not find view for option " + cid);
+	                throw new types_1.FormError("could not find view for option " + cid);
 	            }
 	            this.trigger('select', child.model);
 	        }
@@ -589,7 +694,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this._values.add(model.clone());
 	        });
 	        if (this.name == null)
-	            throw new Types_1.FormError('name property is required');
+	            throw new types_1.FormError('name property is required');
 	        _super.call(this, options);
 	    }
 	    Object.defineProperty(ListEditor.prototype, "name", {
@@ -635,43 +740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/// <reference path="../node_modules/views/views.d.ts" />
-	var types_1 = __webpack_require__(7);
-	var views_1 = __webpack_require__(2);
-	function errorToPromise(err) {
-	    if (err instanceof Error) {
-	        return Promise.reject(err);
-	    }
-	    else if (views_1.utils.isPromise(err)) {
-	        return err;
-	    }
-	    return null;
-	}
-	var Validator = (function () {
-	    function Validator() {
-	    }
-	    Validator.prototype.validate = function (el, value, validate) {
-	        if (validate.name === 'required') {
-	            return value == null ? Promise.reject(new types_1.FormValidationError('required', value)) : null;
-	        }
-	        if (Validator.validators[validate.name]) {
-	            var e = Validator.validators[validate.name](el, value);
-	            return errorToPromise(e);
-	        }
-	        return null;
-	    };
-	    Validator.validators = {};
-	    Validator.messages = {};
-	    return Validator;
-	})();
-	exports.Validator = Validator;
-
-
-/***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -719,6 +788,176 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return FormEditorValidationError;
 	})(FormError);
 	exports.FormEditorValidationError = FormEditorValidationError;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    __.prototype = b.prototype;
+	    d.prototype = new __();
+	};
+	var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+	    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") return Reflect.decorate(decorators, target, key, desc);
+	    switch (arguments.length) {
+	        case 2: return decorators.reduceRight(function(o, d) { return (d && d(o)) || o; }, target);
+	        case 3: return decorators.reduceRight(function(o, d) { return (d && d(target, key)), void 0; }, void 0);
+	        case 4: return decorators.reduceRight(function(o, d) { return (d && d(target, key, o)) || o; }, desc);
+	    }
+	};
+	var __metadata = (this && this.__metadata) || function (k, v) {
+	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var views_1 = __webpack_require__(2);
+	var editor_1 = __webpack_require__(5);
+	var NumberEditor = (function (_super) {
+	    __extends(NumberEditor, _super);
+	    function NumberEditor(options) {
+	        _super.call(this, options);
+	        this._floating = true; // options.float == null ? false : options.float
+	    }
+	    NumberEditor.prototype._onKeyPress = function (e) {
+	        var real_val = String.fromCharCode(e.which), cur_val = this.el.value;
+	        // backspace
+	        if (e.which == 8)
+	            real_val = real_val.substr(0, real_val.length - 2);
+	        if (!~cur_val.indexOf(',') && real_val === ',' && this._floating) {
+	            var sel = this.el.selectionStart;
+	            if (cur_val == '' || sel === 0) {
+	                this.el.value = '0,' + this.el.value;
+	                this.el.setSelectionRange(2, 2);
+	            }
+	            else {
+	                return;
+	            }
+	        }
+	        if (isNaN(parseFloat(real_val))) {
+	            e.preventDefault();
+	        }
+	    };
+	    NumberEditor.prototype.setValue = function (value) {
+	        this.el.value = "" + (this._floating ? value : Math.round(value));
+	    };
+	    NumberEditor.prototype.getValue = function () {
+	        var value = this.el.value;
+	        if (value === '')
+	            return null;
+	        return this._floating ? parseFloat(value.replace(',', '.')) : parseInt(value);
+	    };
+	    NumberEditor.prototype.clear = function () {
+	        this.el.value = '';
+	        this.setDefault();
+	    };
+	    NumberEditor = __decorate([
+	        views_1.events({
+	            'keypress': '_onKeyPress'
+	        }), 
+	        __metadata('design:paramtypes', [Object])
+	    ], NumberEditor);
+	    return NumberEditor;
+	})(editor_1.Editor);
+	exports.NumberEditor = NumberEditor;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    __.prototype = b.prototype;
+	    d.prototype = new __();
+	};
+	var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+	    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") return Reflect.decorate(decorators, target, key, desc);
+	    switch (arguments.length) {
+	        case 2: return decorators.reduceRight(function(o, d) { return (d && d(o)) || o; }, target);
+	        case 3: return decorators.reduceRight(function(o, d) { return (d && d(target, key)), void 0; }, void 0);
+	        case 4: return decorators.reduceRight(function(o, d) { return (d && d(target, key, o)) || o; }, desc);
+	    }
+	};
+	var __metadata = (this && this.__metadata) || function (k, v) {
+	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var views_1 = __webpack_require__(2);
+	var editor_1 = __webpack_require__(5);
+	var SelectEditor = (function (_super) {
+	    __extends(SelectEditor, _super);
+	    function SelectEditor(options) {
+	        _super.call(this, options);
+	    }
+	    SelectEditor.prototype.setValue = function (value) {
+	        var index = null;
+	        for (var i = 0; i < this.el.options.length; i++) {
+	            var o = this.el.options[i];
+	            if (o.value === value.value && o.innerText === value.text) {
+	                index = i;
+	                break;
+	            }
+	        }
+	        if (index !== null) {
+	            this.el.selectedIndex = index;
+	        }
+	    };
+	    SelectEditor.prototype.getValue = function () {
+	        var elm = this.el.options[this.el.selectedIndex];
+	        return {
+	            value: elm.value,
+	            text: elm.innerText
+	        };
+	    };
+	    SelectEditor.prototype.clear = function () {
+	        this.setDefault();
+	    };
+	    SelectEditor = __decorate([
+	        views_1.events({
+	            'change': 'triggerChange'
+	        }), 
+	        __metadata('design:paramtypes', [Object])
+	    ], SelectEditor);
+	    return SelectEditor;
+	})(editor_1.Editor);
+	exports.SelectEditor = SelectEditor;
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/// <reference path="../node_modules/views/views.d.ts" />
+	var types_1 = __webpack_require__(8);
+	var views_1 = __webpack_require__(2);
+	function errorToPromise(err) {
+	    if (err instanceof Error) {
+	        return Promise.reject(err);
+	    }
+	    else if (views_1.utils.isPromise(err)) {
+	        return err;
+	    }
+	    return null;
+	}
+	var Validator = (function () {
+	    function Validator() {
+	    }
+	    Validator.prototype.validate = function (el, value, validate) {
+	        if (validate.name === 'required') {
+	            return value == null ? Promise.reject(new types_1.FormValidationError('required', value)) : null;
+	        }
+	        if (Validator.validators[validate.name]) {
+	            var e = Validator.validators[validate.name](el, value);
+	            return errorToPromise(e);
+	        }
+	        return null;
+	    };
+	    Validator.validators = {};
+	    Validator.messages = {};
+	    return Validator;
+	})();
+	exports.Validator = Validator;
 
 
 /***/ }

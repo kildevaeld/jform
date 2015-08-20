@@ -1,8 +1,8 @@
 
-import {TemplateFunction, View, DataView, ICollection, IModel, 
+import {TemplateFunction, View, DataView, ICollection, IModel,
 	CollectionView, CollectionViewOptions, utils, Collection, Model} from 'views'
-import {IEditor, EditorOptions, } from '../Editors'
-import {FormValidationError, FormError} from '../Types'
+import {IEditor, EditorOptions, CollectionEditor} from './editor'
+import {FormValidationError, FormError} from '../types'
 
 
 export interface ListEditorOptions<U extends IModel> extends CollectionViewOptions, EditorOptions {
@@ -73,7 +73,7 @@ export class ListEditor<U extends IModel> extends View<HTMLDivElement> implement
 
 		this._name = options.name
 		this._values = new Collection<U>(options.values || [])
-		
+
 		this._selectView = new SelectView({
 			collection: options.collection || new Collection<U>([])
 		})
@@ -95,7 +95,7 @@ export class ListEditor<U extends IModel> extends View<HTMLDivElement> implement
 		this.listenTo(this._listView, 'childview:click', function({model}) {
 			this._values.remove(model)
 		})
-		
+
 		this.listenTo(this._selectView, 'select', (model) => {
 			this._values.add(model.clone())
 		})
@@ -135,4 +135,4 @@ export class ListEditor<U extends IModel> extends View<HTMLDivElement> implement
 		super.destroy()
 	}
 }
- 
+

@@ -1,5 +1,5 @@
 import { View, ViewOptions } from 'views';
-import { IEditor } from './Editors';
+import { IEditor } from './editors/editor';
 import { FormEditorValidationError, IValidator } from './Types';
 export interface IEditorOptions extends ViewOptions {
     name: string;
