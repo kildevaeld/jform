@@ -19,6 +19,7 @@ export declare class FormEditorValidationError extends FormError {
     name: string;
     errors: FormValidationError[];
     constructor(name: string, error: FormValidationError[]);
+    toJSON(): any;
 }
 export interface IValidation {
     name: string;

@@ -2714,6 +2714,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.name = name;
 	        this.errors = error;
 	    }
+	    FormEditorValidationError.prototype.toJSON = function () {
+	        return {
+	            name: this.name,
+	            errors: this.errors.map(function (e) {
+	                return e.message;
+	            })
+	        };
+	    };
 	    return FormEditorValidationError;
 	})(FormError);
 	exports.FormEditorValidationError = FormEditorValidationError;
@@ -2871,8 +2879,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	            promises = promises.concat(p);
 	        }
-	        return all(promises).catch(function (err) {
-	            throw new Types_1.FormEditorValidationError(editor.name, err);
+	        return all(promises).catch(function (errors) {
+	            errors.forEach(function (error) {
+	                var msg = error.message || validator_1.Validator.messages[error.name];
+	                error.message = renderMessage(editor, msg);
+	            });
+	            throw new Types_1.FormEditorValidationError(editor.name, errors);
 	        });
 	    };
 	    Form.prototype.validate = function () {
@@ -3235,6 +3247,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.name = name;
 	        this.errors = error;
 	    }
+	    FormEditorValidationError.prototype.toJSON = function () {
+	        return {
+	            name: this.name,
+	            errors: this.errors.map(function (e) {
+	                return e.message;
+	            })
+	        };
+	    };
 	    return FormEditorValidationError;
 	})(FormError);
 	exports.FormEditorValidationError = FormEditorValidationError;
