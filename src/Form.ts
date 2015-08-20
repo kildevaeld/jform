@@ -166,6 +166,14 @@ export class Form extends View<HTMLFormElement> {
 
     return values;
   }
+  
+  clear () {
+    this.triggerMethod('before:clear')
+    for (let key in this.editors) {
+      this.editors[key].clear()
+    }
+    this.triggerMethod('clear');
+  }
 
   public validate (): Promise<{[key:string]:FormEditorValidationError[]}> {
     function errorToPromise (err?:any): Promise<void> {

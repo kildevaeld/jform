@@ -34,6 +34,7 @@ export declare class Form extends View<HTMLFormElement> {
     editors: EditorMap;
     setValue(values: FormValueMap): any;
     getValue(): FormValueMap;
+    clear(): void;
     validate(): Promise<{
         [key: string]: FormEditorValidationError[];
     }>;

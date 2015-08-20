@@ -234,6 +234,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return values;
 	    };
+	    Form.prototype.clear = function () {
+	        this.triggerMethod('before:clear');
+	        for (var key in this.editors) {
+	            this.editors[key].clear();
+	        }
+	        this.triggerMethod('clear');
+	    };
 	    Form.prototype.validate = function () {
 	        var _this = this;
 	        function errorToPromise(err) {
