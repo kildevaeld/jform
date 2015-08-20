@@ -41,6 +41,15 @@ export class FormEditorValidationError extends FormError {
     this.name = name
     this.errors = error
   }
+  
+  toJSON (): any {
+    return {
+      name: this.name,
+      errors: this.errors.map(function (e) {
+        return e.message
+      })
+    }
+  }
 }
 
 export interface IValidation {

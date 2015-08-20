@@ -193,8 +193,12 @@ export class Form extends View<HTMLFormElement> {
 
       promises = promises.concat(p);
     }
-    return all(promises).catch(function (err) {
-      throw new FormEditorValidationError(editor.name, err)
+    return all(promises).catch(function (errors) {
+      errors.forEach(function (error) {
+        let msg = error.message||Validator.messages[error.name]
+        error.message = renderMessage(editor, msg)
+      })
+      throw new FormEditorValidationError(editor.name, errors)
     })
   }
 
