@@ -9,7 +9,7 @@ export interface IEditor extends IView, IEventEmitter {
     validate(): FormValidationError | Promise<boolean>;
 }
 export interface EditorOptions extends ViewOptions {
-    labe?: string;
+    label?: string;
     name: string;
     defaultValue?: any;
 }

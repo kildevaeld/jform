@@ -23,7 +23,7 @@ export interface IEditor extends IView, IEventEmitter {
 }
 
 export interface EditorOptions extends ViewOptions {
-  labe?:string
+  label?:string
   name: string
   defaultValue?: any
 }
