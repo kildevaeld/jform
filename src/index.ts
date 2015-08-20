@@ -5,7 +5,7 @@ import {Form, FormOptions} from './form'
 import * as ed from './editors/index'
 import {Validator, ValidateFunc} from './validator'
 import {Editor, IEditor, CollectionEditor,CollectionEditorOptions} from './editors/editor'
-
+import {FormValidationError} from './types'
 export * from './form'
 
 export function create (elm:FormOptions|string|HTMLElement, options:FormOptions={}): Form {
@@ -26,7 +26,7 @@ export function create (elm:FormOptions|string|HTMLElement, options:FormOptions=
 export module editors {
 
 	//export var Editor = Editor
-
+	export var ValidationError = FormValidationError
 	export function extend(name: string, prototype: any): IEditor {
 		let editor = Editor.extend(prototype,{})
 		ed.set(editor, name)

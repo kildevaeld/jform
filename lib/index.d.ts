@@ -2,9 +2,11 @@
 import { Form, FormOptions } from './form';
 import { ValidateFunc } from './validator';
 import { IEditor } from './editors/editor';
+import { FormValidationError } from './types';
 export * from './form';
 export declare function create(elm: FormOptions | string | HTMLElement, options?: FormOptions): Form;
 export declare module editors {
+    var ValidationError: typeof FormValidationError;
     function extend(name: string, prototype: any): IEditor;
     function get(name: string): IEditor;
 }

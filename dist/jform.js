@@ -59,11 +59,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	function __export(m) {
 	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	}
-	var form_1 = __webpack_require__(1);
-	var ed = __webpack_require__(3);
+	var form_1 = __webpack_require__(4);
+	var ed = __webpack_require__(5);
 	var validator_1 = __webpack_require__(11);
-	var editor_1 = __webpack_require__(5);
-	__export(__webpack_require__(1));
+	var editor_1 = __webpack_require__(1);
+	var types_1 = __webpack_require__(8);
+	__export(__webpack_require__(4));
 	function create(elm, options) {
 	    if (options === void 0) { options = {}; }
 	    if (typeof elm === 'string') {
@@ -84,6 +85,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var editors;
 	(function (editors) {
 	    //export var Editor = Editor
+	    editors.ValidationError = types_1.FormValidationError;
 	    function extend(name, prototype) {
 	        var editor = editor_1.Editor.extend(prototype, {});
 	        ed.set(editor, name);
@@ -120,8 +122,190 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = new __();
 	};
 	var views_1 = __webpack_require__(2);
-	var editors = __webpack_require__(3);
-	var Types_1 = __webpack_require__(6);
+	var Types_1 = __webpack_require__(3);
+	var AbstractClassError = (function (_super) {
+	    __extends(AbstractClassError, _super);
+	    function AbstractClassError() {
+	        _super.apply(this, arguments);
+	        this.name = "EditorImplementationError";
+	    }
+	    return AbstractClassError;
+	})(Types_1.FormError);
+	var EditorError = (function (_super) {
+	    __extends(EditorError, _super);
+	    function EditorError() {
+	        _super.apply(this, arguments);
+	        this.name = 'EditorError';
+	    }
+	    return EditorError;
+	})(Types_1.FormError);
+	var Editor = (function (_super) {
+	    __extends(Editor, _super);
+	    function Editor(options) {
+	        if (!options || !options.name) {
+	            throw new EditorError("no name specified");
+	        }
+	        this.label = options.label;
+	        this._name = options.name;
+	        this._defaultValue = options.defaultValue;
+	        _super.call(this, options);
+	    }
+	    Object.defineProperty(Editor.prototype, "name", {
+	        get: function () {
+	            return this._name;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(Editor.prototype, "value", {
+	        get: function () {
+	            return this.getValue();
+	        },
+	        set: function (value) {
+	            this.setValue(value);
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Editor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
+	    Editor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
+	    Editor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
+	    // no-op
+	    Editor.prototype.validate = function () {
+	        return null;
+	    };
+	    Editor.prototype.triggerChange = function (e) {
+	        this.triggerMethod('change', this);
+	    };
+	    Editor.prototype.render = function () {
+	        this.undelegateEvents();
+	        _super.prototype.render.call(this);
+	        this.delegateEvents();
+	        return this;
+	    };
+	    Editor.prototype.setDefault = function () {
+	        if (this._defaultValue != null)
+	            this.setValue(this._defaultValue);
+	    };
+	    return Editor;
+	})(views_1.TemplateView);
+	exports.Editor = Editor;
+	var CollectionEditor = (function (_super) {
+	    __extends(CollectionEditor, _super);
+	    function CollectionEditor(options) {
+	        if (!options || !options.name) {
+	            throw new EditorError("no name specified");
+	        }
+	        this._name = options.name;
+	        this._defaultValue = options.defaultValue;
+	        _super.call(this, options);
+	    }
+	    Object.defineProperty(CollectionEditor.prototype, "name", {
+	        get: function () {
+	            return this._name;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(CollectionEditor.prototype, "value", {
+	        get: function () {
+	            return this.getValue();
+	        },
+	        set: function (value) {
+	            this.setValue(value);
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    CollectionEditor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
+	    CollectionEditor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
+	    CollectionEditor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
+	    // no-op
+	    CollectionEditor.prototype.validate = function () {
+	        return null;
+	    };
+	    CollectionEditor.prototype.triggerChange = function (e) {
+	        this.triggerMethod('change', this);
+	    };
+	    CollectionEditor.prototype.setDefault = function () {
+	        if (this._defaultValue != null)
+	            this.setValue(this._defaultValue);
+	    };
+	    return CollectionEditor;
+	})(views_1.CollectionView);
+	exports.CollectionEditor = CollectionEditor;
+
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    __.prototype = b.prototype;
+	    d.prototype = new __();
+	};
+	var FormError = (function () {
+	    function FormError(message, code) {
+	        this.name = "FormError";
+	        this.message = message;
+	    }
+	    FormError.prototype.toString = function () {
+	        return this.name + ": " + this.message;
+	    };
+	    FormError.prototype.toJSON = function () {
+	        return {
+	            name: this.name,
+	            message: this.message,
+	            code: this.code
+	        };
+	    };
+	    return FormError;
+	})();
+	exports.FormError = FormError;
+	var FormValidationError = (function (_super) {
+	    __extends(FormValidationError, _super);
+	    function FormValidationError(name, value, message) {
+	        _super.call(this, message);
+	        this.name = "FormValidationError";
+	        this.name = name;
+	        this.value = value;
+	    }
+	    return FormValidationError;
+	})(FormError);
+	exports.FormValidationError = FormValidationError;
+	var FormEditorValidationError = (function (_super) {
+	    __extends(FormEditorValidationError, _super);
+	    function FormEditorValidationError(name, error) {
+	        _super.call(this, null);
+	        this.name = name;
+	        this.errors = error;
+	    }
+	    return FormEditorValidationError;
+	})(FormError);
+	exports.FormEditorValidationError = FormEditorValidationError;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    __.prototype = b.prototype;
+	    d.prototype = new __();
+	};
+	var views_1 = __webpack_require__(2);
+	var editors = __webpack_require__(5);
+	var Types_1 = __webpack_require__(3);
 	var validator_1 = __webpack_require__(11);
 	function flatten(arr) {
 	    return arr.reduce(function (flat, toFlatten) {
@@ -353,17 +537,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 2 */
-/***/ function(module, exports) {
-
-	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
-
-/***/ },
-/* 3 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/// <reference path="../../node_modules/views/views.d.ts" />
-	var input_editor_1 = __webpack_require__(4);
+	var input_editor_1 = __webpack_require__(6);
 	var list_1 = __webpack_require__(7);
 	var number_1 = __webpack_require__(9);
 	var select_1 = __webpack_require__(10);
@@ -392,7 +570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 4 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -401,7 +579,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var editor_1 = __webpack_require__(5);
+	var editor_1 = __webpack_require__(1);
 	var views_1 = __webpack_require__(2);
 	var InputEditor = (function (_super) {
 	    __extends(InputEditor, _super);
@@ -450,182 +628,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return InputEditor;
 	})(editor_1.Editor);
 	exports.InputEditor = InputEditor;
-
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    __.prototype = b.prototype;
-	    d.prototype = new __();
-	};
-	var views_1 = __webpack_require__(2);
-	var Types_1 = __webpack_require__(6);
-	var AbstractClassError = (function (_super) {
-	    __extends(AbstractClassError, _super);
-	    function AbstractClassError() {
-	        _super.apply(this, arguments);
-	        this.name = "EditorImplementationError";
-	    }
-	    return AbstractClassError;
-	})(Types_1.FormError);
-	var EditorError = (function (_super) {
-	    __extends(EditorError, _super);
-	    function EditorError() {
-	        _super.apply(this, arguments);
-	        this.name = 'EditorError';
-	    }
-	    return EditorError;
-	})(Types_1.FormError);
-	var Editor = (function (_super) {
-	    __extends(Editor, _super);
-	    function Editor(options) {
-	        if (!options || !options.name) {
-	            throw new EditorError("no name specified");
-	        }
-	        this.label = options.label;
-	        this._name = options.name;
-	        this._defaultValue = options.defaultValue;
-	        _super.call(this, options);
-	    }
-	    Object.defineProperty(Editor.prototype, "name", {
-	        get: function () {
-	            return this._name;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(Editor.prototype, "value", {
-	        get: function () {
-	            return this.getValue();
-	        },
-	        set: function (value) {
-	            this.setValue(value);
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Editor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
-	    Editor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
-	    Editor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
-	    // no-op
-	    Editor.prototype.validate = function () {
-	        return null;
-	    };
-	    Editor.prototype.triggerChange = function (e) {
-	        this.triggerMethod('change', this);
-	    };
-	    Editor.prototype.render = function () {
-	        this.undelegateEvents();
-	        _super.prototype.render.call(this);
-	        this.delegateEvents();
-	        return this;
-	    };
-	    Editor.prototype.setDefault = function () {
-	        if (this._defaultValue != null)
-	            this.setValue(this._defaultValue);
-	    };
-	    return Editor;
-	})(views_1.TemplateView);
-	exports.Editor = Editor;
-	var CollectionEditor = (function (_super) {
-	    __extends(CollectionEditor, _super);
-	    function CollectionEditor(options) {
-	        if (!options || !options.name) {
-	            throw new EditorError("no name specified");
-	        }
-	        this._name = options.name;
-	        this._defaultValue = options.defaultValue;
-	        _super.call(this, options);
-	    }
-	    Object.defineProperty(CollectionEditor.prototype, "name", {
-	        get: function () {
-	            return this._name;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(CollectionEditor.prototype, "value", {
-	        get: function () {
-	            return this.getValue();
-	        },
-	        set: function (value) {
-	            this.setValue(value);
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    CollectionEditor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
-	    CollectionEditor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
-	    CollectionEditor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
-	    // no-op
-	    CollectionEditor.prototype.validate = function () {
-	        return null;
-	    };
-	    CollectionEditor.prototype.triggerChange = function (e) {
-	        this.triggerMethod('change', this);
-	    };
-	    CollectionEditor.prototype.setDefault = function () {
-	        if (this._defaultValue != null)
-	            this.setValue(this._defaultValue);
-	    };
-	    return CollectionEditor;
-	})(views_1.CollectionView);
-	exports.CollectionEditor = CollectionEditor;
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    __.prototype = b.prototype;
-	    d.prototype = new __();
-	};
-	var FormError = (function () {
-	    function FormError(message, code) {
-	        this.name = "FormError";
-	        this.message = message;
-	    }
-	    FormError.prototype.toString = function () {
-	        return this.name + ": " + this.message;
-	    };
-	    FormError.prototype.toJSON = function () {
-	        return {
-	            name: this.name,
-	            message: this.message,
-	            code: this.code
-	        };
-	    };
-	    return FormError;
-	})();
-	exports.FormError = FormError;
-	var FormValidationError = (function (_super) {
-	    __extends(FormValidationError, _super);
-	    function FormValidationError(name, value, message) {
-	        _super.call(this, message);
-	        this.name = "FormValidationError";
-	        this.name = name;
-	        this.value = value;
-	    }
-	    return FormValidationError;
-	})(FormError);
-	exports.FormValidationError = FormValidationError;
-	var FormEditorValidationError = (function (_super) {
-	    __extends(FormEditorValidationError, _super);
-	    function FormEditorValidationError(name, error) {
-	        _super.call(this, null);
-	        this.name = name;
-	        this.errors = error;
-	    }
-	    return FormEditorValidationError;
-	})(FormError);
-	exports.FormEditorValidationError = FormEditorValidationError;
 
 
 /***/ },
@@ -823,7 +825,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(2);
-	var editor_1 = __webpack_require__(5);
+	var editor_1 = __webpack_require__(1);
 	var NumberEditor = (function (_super) {
 	    __extends(NumberEditor, _super);
 	    function NumberEditor(options) {
@@ -895,7 +897,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(2);
-	var editor_1 = __webpack_require__(5);
+	var editor_1 = __webpack_require__(1);
 	var SelectEditor = (function (_super) {
 	    __extends(SelectEditor, _super);
 	    function SelectEditor(options) {
