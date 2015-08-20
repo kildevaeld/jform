@@ -2855,28 +2855,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        this.triggerMethod('clear');
 	    };
+	    Form.prototype.validateEditor = function (name) {
+	        var _this = this;
+	        var editor = this.editors[name];
+	        if (!editor)
+	            return Promise.reject(new Types_1.FormError("no editor named " + name));
+	        var e = validator_1.errorToPromise(editor.validate());
+	        var promises = [];
+	        if (e)
+	            promises.push(e);
+	        if (this._validations[editor.name]) {
+	            var value = editor.getValue();
+	            var p = this._validations[editor.name].map(function (v) {
+	                return validator_1.errorToPromise(_this._validator.validate(editor.el, value, v));
+	            });
+	            promises = promises.concat(p);
+	        }
+	        return views_1.utils.objectToPromise((_a = {}, _a[editor.name] = all(promises), _a)).catch(function (err) {
+	            throw new Types_1.FormEditorValidationError(editor.name, err);
+	        });
+	        var _a;
+	    };
 	    Form.prototype.validate = function () {
 	        var _this = this;
-	        function errorToPromise(err) {
-	            if (err instanceof Error) {
-	                return Promise.reject(err);
-	            }
-	            else if (views_1.utils.isPromise(err)) {
-	                return err;
-	            }
-	            return Promise.resolve(null);
-	        }
 	        var editors = views_1.utils.values(this.editors);
 	        var self = this;
 	        return asyncEach(editors, function (editor) {
-	            var e = errorToPromise(editor.validate());
+	            var e = validator_1.errorToPromise(editor.validate());
 	            var promises = [];
 	            if (e)
 	                promises.push(e);
 	            if (_this._validations[editor.name]) {
 	                var value = editor.getValue();
 	                var p = _this._validations[editor.name].map(function (v) {
-	                    return errorToPromise(_this._validator.validate(editor.el, value, v));
+	                    return validator_1.errorToPromise(_this._validator.validate(editor.el, value, v));
 	                });
 	                promises = promises.concat(p);
 	            }
@@ -3377,8 +3389,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    else if (views_1.utils.isPromise(err)) {
 	        return err;
 	    }
-	    return null;
+	    return Promise.resolve(null);
 	}
+	exports.errorToPromise = errorToPromise;
 	var Validator = (function () {
 	    function Validator() {
 	    }

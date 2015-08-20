@@ -2,7 +2,7 @@ import {View, ViewOptions, utils} from 'views'
 import * as editors from './editors/index'
 import {IEditor} from './editors/editor'
 import {FormError, FormValidationError,FormEditorValidationError, IValidator, IValidation} from './Types'
-import {Validator} from './validator'
+import {Validator, errorToPromise} from './validator'
 
 export interface IEditorOptions extends ViewOptions {
   name: string
@@ -174,16 +174,32 @@ export class Form extends View<HTMLFormElement> {
     }
     this.triggerMethod('clear');
   }
+  
+  public validateEditor(name:string): Promise<void> {
+    let editor = this.editors[name]
+    if (!editor) return Promise.reject(new FormError("no editor named " + name))
+    
+    let e = errorToPromise(editor.validate());
+    let promises = [];
+
+    if (e) promises.push(e);
+
+
+    if (this._validations[editor.name]) {
+      let value = editor.getValue()
+      let p = this._validations[editor.name].map((v) => {
+        return errorToPromise(this._validator.validate(editor.el, value, v))
+      });
+
+      promises = promises.concat(p);
+    }
+
+    return utils.objectToPromise({[editor.name]:<any>all(promises)}).catch(function (err) {
+      throw new FormEditorValidationError(editor.name, err)
+    });
+  }
 
   public validate (): Promise<{[key:string]:FormEditorValidationError[]}> {
-    function errorToPromise (err?:any): Promise<void> {
-      if (err instanceof Error) {
-        return Promise.reject(err)
-      } else if (utils.isPromise(err)) {
-        return err
-      }
-      return Promise.resolve(null)
-    }
 
     let editors: IEditor[] = utils.values<IEditor>(this.editors);
     var self = this;

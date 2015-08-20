@@ -4,13 +4,13 @@ import {IValidator, IValidation, FormValidationError} from './types'
 import {utils} from 'views'
 export type ValidateFunc = (el:HTMLElement, value:any) => FormValidationError|Promise<void>
 
-function errorToPromise (err?:any): Promise<void> {
+export function errorToPromise (err?:any): Promise<void> {
 	if (err instanceof Error) {
   	return Promise.reject(err)
   } else if (utils.isPromise(err)) {
    	return err
   } 
-  return null
+  return Promise.resolve(null)
 }
 
 export class Validator implements IValidator {
