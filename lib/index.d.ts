@@ -3,9 +3,8 @@ import { Form, FormOptions } from './form';
 import { ValidateFunc } from './validator';
 import { IEditor } from './editors/editor';
 export * from './form';
-export declare function create(elm: FormOptions | string, options?: FormOptions): Form;
+export declare function create(elm: FormOptions | string | HTMLElement, options?: FormOptions): Form;
 export declare module editors {
-    var Editor: any;
     function extend(name: string, prototype: any): IEditor;
     function get(name: string): IEditor;
 }

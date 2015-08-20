@@ -8,14 +8,16 @@ import {Editor, IEditor, CollectionEditor,CollectionEditorOptions} from './edito
 
 export * from './form'
 
-export function create (elm:FormOptions|string, options:FormOptions={}): Form {
+export function create (elm:FormOptions|string|HTMLElement, options:FormOptions={}): Form {
 	if (typeof elm === 'string') {
 		let e = <HTMLElement>document.querySelector(<string>elm);
 		if (!e) return null
 		options.el = e
 
+	} else if (elm instanceof HTMLElement) {
+		options.el = elm
 	} else {
-		options = elm
+		options = <FormOptions>elm
 	}
 
 	return new Form(options)
@@ -23,7 +25,7 @@ export function create (elm:FormOptions|string, options:FormOptions={}): Form {
 
 export module editors {
 
-	export var Editor = Editor
+	//export var Editor = Editor
 
 	export function extend(name: string, prototype: any): IEditor {
 		let editor = Editor.extend(prototype,{})

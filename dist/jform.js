@@ -62,6 +62,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var form_1 = __webpack_require__(1);
 	var ed = __webpack_require__(3);
 	var validator_1 = __webpack_require__(11);
+	var editor_1 = __webpack_require__(5);
 	__export(__webpack_require__(1));
 	function create(elm, options) {
 	    if (options === void 0) { options = {}; }
@@ -71,6 +72,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return null;
 	        options.el = e;
 	    }
+	    else if (elm instanceof HTMLElement) {
+	        options.el = elm;
+	    }
 	    else {
 	        options = elm;
 	    }
@@ -79,9 +83,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.create = create;
 	var editors;
 	(function (editors) {
-	    editors.Editor = editors.Editor;
+	    //export var Editor = Editor
 	    function extend(name, prototype) {
-	        var editor = editors.Editor.extend(prototype, {});
+	        var editor = editor_1.Editor.extend(prototype, {});
 	        ed.set(editor, name);
 	        return editor;
 	    }
