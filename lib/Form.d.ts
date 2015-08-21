@@ -1,10 +1,10 @@
-import { View, ViewOptions } from 'views';
+import { TemplateView, TemplateViewOptions } from 'views';
 import { IEditor } from './editors/editor';
 import { FormEditorValidationError, IValidator } from './Types';
-export interface IEditorOptions extends ViewOptions {
+export interface IEditorOptions extends TemplateViewOptions {
     name: string;
 }
-export interface FormOptions extends ViewOptions {
+export interface FormOptions extends TemplateViewOptions {
     selector?: string;
     attribute?: string;
     editors?: {
@@ -19,7 +19,7 @@ export declare type EditorMap = {
 export declare type FormValueMap = {
     [key: string]: any;
 };
-export declare class Form extends View<HTMLFormElement> {
+export declare class Form extends TemplateView<HTMLFormElement> {
     static defaults: {
         selector: string;
         attribute: string;
@@ -30,6 +30,7 @@ export declare class Form extends View<HTMLFormElement> {
     private _validations;
     strict: boolean;
     constructor(options?: FormOptions);
+    render(options: any): any;
     val: FormValueMap;
     editors: EditorMap;
     setValue(values: FormValueMap): any;
@@ -39,7 +40,9 @@ export declare class Form extends View<HTMLFormElement> {
     validate(): Promise<{
         [key: string]: FormEditorValidationError[];
     }>;
-    private getElements(formEl, options);
+    private _getElements(formEl, options);
+    private _renderEditors();
+    private _destroyEditors();
     private _onEditorChange(editor);
     private _onEditorInvalid(editor, error);
     private _getType(element);

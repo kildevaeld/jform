@@ -2799,16 +2799,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.strict = options.strict || this.strict || false;
 	        this._validator = options.validator || new validator_1.Validator();
 	        this._validations = {};
-	        this._editors = this.getElements(this.el, options);
-	        for (var k in this._editors) {
-	            this._editors[k].render();
-	        }
 	    }
 	    Object.defineProperty(Form, "defaults", {
 	        get: function () { return { selector: '[name]', attribute: 'form-editor' }; },
 	        enumerable: true,
 	        configurable: true
 	    });
+	    Form.prototype.render = function (options) {
+	        this._destroyEditors();
+	        _super.prototype.render.call(this, options);
+	        this._renderEditors();
+	        return this;
+	    };
 	    Object.defineProperty(Form.prototype, "val", {
 	        get: function () {
 	            return this.getValue();
@@ -2917,7 +2919,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return map;
 	        });
 	    };
-	    Form.prototype.getElements = function (formEl, options) {
+	    Form.prototype._getElements = function (formEl, options) {
 	        var elms = formEl.querySelectorAll(options.selector);
 	        var i, elm, editorName, required;
 	        var output = {};
@@ -2960,6 +2962,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return output;
 	    };
+	    Form.prototype._renderEditors = function () {
+	        this._editors = this._getElements(this.el, this._options || {});
+	        for (var k in this._editors) {
+	            this._editors[k].render();
+	        }
+	    };
+	    Form.prototype._destroyEditors = function () {
+	        for (var k in this.editors) {
+	            this.stopListening(this.editors[k]);
+	            this.editors[k].destroy();
+	        }
+	        this._editors = {};
+	    };
 	    Form.prototype._onEditorChange = function (editor) {
 	        this.trigger('change', editor);
 	    };
@@ -2981,7 +2996,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _super.prototype.destroy.call(this);
 	    };
 	    return Form;
-	})(views_1.View);
+	})(views_1.TemplateView);
 	exports.Form = Form;
 
 

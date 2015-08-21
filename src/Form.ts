@@ -1,14 +1,14 @@
-import {View, ViewOptions, utils} from 'views'
+import {TemplateView, TemplateViewOptions, utils} from 'views'
 import * as editors from './editors/index'
 import {IEditor} from './editors/editor'
 import {FormError, FormValidationError,FormEditorValidationError, IValidator, IValidation} from './Types'
 import {Validator, errorToPromise} from './validator'
 
-export interface IEditorOptions extends ViewOptions {
+export interface IEditorOptions extends TemplateViewOptions {
   name: string
 }
 
-export interface FormOptions extends ViewOptions {
+export interface FormOptions extends TemplateViewOptions {
   selector?: string
   attribute?: string
   editors?: {[key: string]: IEditorOptions}
@@ -83,7 +83,7 @@ export declare type EditorMap = { [key: string]: IEditor }
 
 export declare type FormValueMap = {[key: string]: any}
 
-export class Form extends View<HTMLFormElement> {
+export class Form extends TemplateView<HTMLFormElement> {
   static get defaults() { return { selector:'[name]', attribute:'form-editor'}}
 
   // Privates
@@ -91,7 +91,6 @@ export class Form extends View<HTMLFormElement> {
   private _editors: EditorMap
   private _validator: IValidator
   private _validations: {[key: string]: IValidation[]}
-
 
   public strict: boolean
 
@@ -108,14 +107,13 @@ export class Form extends View<HTMLFormElement> {
     this._validator = options.validator|| new Validator();
     this._validations = {};
 
+  }
 
-    this._editors = this.getElements(this.el, options)
-
-    for (let k in this._editors) {
-      this._editors[k].render();
-    }
-
-
+  render (options:any): any {
+    this._destroyEditors();
+    super.render(options);
+    this._renderEditors();
+    return this;
   }
 
   get val (): FormValueMap {
@@ -166,7 +164,7 @@ export class Form extends View<HTMLFormElement> {
 
     return values;
   }
-  
+
   clear () {
     this.triggerMethod('before:clear')
     for (let key in this.editors) {
@@ -174,11 +172,11 @@ export class Form extends View<HTMLFormElement> {
     }
     this.triggerMethod('clear');
   }
-  
+
   public validateEditor(name:string): Promise<void> {
     let editor = this.editors[name]
     if (!editor) return Promise.reject(new FormError("no editor named " + name))
-    
+
     let e = errorToPromise(editor.validate());
     let promises = [];
 
@@ -187,6 +185,7 @@ export class Form extends View<HTMLFormElement> {
 
     if (this._validations[editor.name]) {
       let value = editor.getValue()
+
       let p = this._validations[editor.name].map((v) => {
         return errorToPromise(this._validator.validate(editor.el, value, v))
       });
@@ -240,7 +239,7 @@ export class Form extends View<HTMLFormElement> {
   }
 
 
-  private getElements (formEl: HTMLElement, options: FormOptions): {[key: string]: IEditor} {
+  private _getElements (formEl: HTMLElement, options: FormOptions): {[key: string]: IEditor} {
 
     let elms: NodeList = formEl.querySelectorAll(options.selector)
     let i: number, elm: HTMLElement, editorName: string, required: string
@@ -303,6 +302,22 @@ export class Form extends View<HTMLFormElement> {
 
     return output
 
+  }
+
+  private _renderEditors () {
+    this._editors = this._getElements(this.el, (<any>this)._options||{})
+
+    for (let k in this._editors) {
+      this._editors[k].render();
+    }
+  }
+
+  private _destroyEditors () {
+    for (let k in this.editors) {
+      this.stopListening(this.editors[k]);
+      this.editors[k].destroy();
+    }
+    this._editors = {};
   }
 
   private _onEditorChange(editor: IEditor) {
