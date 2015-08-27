@@ -311,14 +311,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var editors = __webpack_require__(5);
 	var Types_1 = __webpack_require__(3);
 	var validator_1 = __webpack_require__(11);
-	views_1.EventEmitter.debugCallback = function (ctorname, name, event, args) {
-	    console.log(name || ctorname, event, args);
-	};
-	function flatten(arr) {
-	    return arr.reduce(function (flat, toFlatten) {
-	        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
-	    }, []);
-	}
 	function renderMessage(view, msg) {
 	    if (!msg)
 	        return null;
@@ -349,11 +341,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            promise.then(function (result) {
 	                results[index] = result;
 	                if ((--count) === 0)
-	                    return errors.length ? reject(flatten(errors)) : resolve(results.length ? results : null);
+	                    return errors.length ? reject(views_1.utils.flatten(errors)) : resolve(results.length ? results : null);
 	            }, function (err) {
 	                errors.push(err);
 	                if ((--count) === 0)
-	                    reject(flatten(errors));
+	                    reject(views_1.utils.flatten(errors));
 	            });
 	        }
 	        for (i; i < len; i++) {

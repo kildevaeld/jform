@@ -4,9 +4,6 @@ import {IEditor} from './editors/editor'
 import {FormError, FormValidationError,FormEditorValidationError, IValidator, IValidation} from './Types'
 import {Validator, errorToPromise} from './validator'
 
-EventEmitter.debugCallback = function (ctorname, name, event, args) {
-  console.log(name||ctorname, event, args)
-}
 
 export interface IEditorOptions extends TemplateViewOptions {
   name: string
@@ -19,12 +16,6 @@ export interface FormOptions extends TemplateViewOptions {
   strict?:boolean
   autoValidate?:boolean
   validator?: IValidator
-}
-
-function flatten(arr) {
-  return arr.reduce(function (flat, toFlatten) {
-    return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
-  }, []);
 }
 
 function renderMessage(view:IEditor, msg:string) {
@@ -66,11 +57,11 @@ function all<T>(array:Promise<T>[]): Promise<T[]> {
       promise.then(function (result) {
         results[index] = result;
         if ((--count) === 0)
-          return errors.length ? reject(flatten(errors)) : resolve(results.length ? results : null);
+          return errors.length ? reject(utils.flatten(errors)) : resolve(results.length ? results : null);
       }, function (err) {
         errors.push(err)
         if ((--count) === 0)
-          reject(flatten(errors));
+          reject(utils.flatten(errors));
       })
     }
 
@@ -97,7 +88,7 @@ export class Form extends TemplateView<HTMLFormElement> {
 
   public strict: boolean
   public autoValidate: boolean
-  
+
   constructor (options?: FormOptions) {
 
     if (options != null) {
@@ -108,7 +99,7 @@ export class Form extends TemplateView<HTMLFormElement> {
 
     this.strict = options.strict||this.strict||false
     this.autoValidate = options.autoValidate||this.autoValidate||false
-    
+
     this._validator = options.validator|| new Validator();
     this._validations = {};
 
@@ -134,7 +125,7 @@ export class Form extends TemplateView<HTMLFormElement> {
   }
 
   setValue (values: FormValueMap): any {
-    
+
     this.trigger("before:setvalue", values)
 
     for (let key in values) {
@@ -197,41 +188,41 @@ export class Form extends TemplateView<HTMLFormElement> {
 
       promises = promises.concat(p);
     }
-    
+
     return all(promises).catch( (errors) => {
       errors.forEach(function (error) {
         let msg = error.message||Validator.messages[error.name]
         error.message = renderMessage(editor, msg)
       })
-      
+
       let e = new FormEditorValidationError(editor.name, errors);
-      
+
       editor.trigger('invalid', e)
-      
+
       throw e;
     });
   }
-  
+
 
   public validate (): Promise<{[key:string]:FormEditorValidationError[]}> {
 
-    
+
     let names = Object.keys(this.editors)
-    
+
     return asyncEach(names, (name) => {
       return this.validateEditor.call(this, name)
     }, this, true).then(x => null)
     .catch( e => {
       let map = {};
-      
+
       e.forEach( e => {
         console.log(e)
         map[e.name] = e
       })
-      
+
       return map;
     });
-   
+
   }
 
   private _getElements (formEl: HTMLElement, options: FormOptions): {[key: string]: IEditor} {
@@ -286,7 +277,7 @@ export class Form extends TemplateView<HTMLFormElement> {
 
       this.listenTo(editor, 'change', this._onEditorChange);
       this.listenTo(editor, 'invalid', this._onEditorInvalid);
-      
+
       output[name] = editor;
 
     }
