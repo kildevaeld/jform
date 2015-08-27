@@ -524,11 +524,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._editors = {};
 	    };
 	    Form.prototype._onEditorChange = function (editor) {
-	        this.trigger('change', editor);
+	        this.triggerMethod('change', editor);
 	    };
 	    Form.prototype._onEditorInvalid = function (error) {
 	        var editor = this.editors[error.name];
-	        this.trigger('invalid', editor, error);
+	        this.triggerMethod('invalid', editor, error);
 	    };
 	    Form.prototype._getType = function (element) {
 	        if (element.nodeName === 'INPUT') {

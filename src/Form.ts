@@ -303,12 +303,12 @@ export class Form extends TemplateView<HTMLFormElement> {
   }
 
   private _onEditorChange(editor: IEditor) {
-    this.trigger('change', editor)
+    this.triggerMethod('change', editor)
   }
 
   private _onEditorInvalid(error: FormValidationError) {
     let editor = this.editors[error.name]
-    this.trigger('invalid', editor, error)
+    this.triggerMethod('invalid', editor, error)
   }
 
   private _getType(element:HTMLElement): string {
