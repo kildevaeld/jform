@@ -11,10 +11,7 @@ export interface ListEditorOptions<U extends IModel> extends CollectionViewOptio
 
 }
 
-const Template = `
-<select></select>
-<ul class="selected-list"></ul>
-`
+
 const SelectView = CollectionView.extend({
 	tagName: 'select',
 	events: {

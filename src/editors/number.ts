@@ -12,10 +12,8 @@ export interface NumberEditorOptions extends EditorOptions {
 export class NumberEditor extends Editor<HTMLInputElement, number> {
   _floating: boolean
   constructor (options:NumberEditorOptions) {
-    super(options)
-    
-    this._floating = true// options.float == null ? false : options.float
-    
+    super(options) 
+    this._floating = options.float == null ? false : options.float
   }
 
 

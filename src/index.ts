@@ -1,6 +1,4 @@
 /// <reference path="../node_modules/views/views.d.ts" />
-//// <reference path="../typings/es6-promise/es6-promise.d.ts" />
-
 import {Form, FormOptions} from './form'
 import * as ed from './editors/index'
 import {Validator, ValidateFunc} from './validator'
@@ -25,7 +23,6 @@ export function create (elm:FormOptions|string|HTMLElement, options:FormOptions=
 
 export module editors {
 
-	//export var Editor = Editor
 	export var ValidationError = FormValidationError
 	export function extend(name: string, prototype: any): IEditor {
 		let editor = Editor.extend(prototype,{})

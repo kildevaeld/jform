@@ -1,13 +1,12 @@
 import {Editor} from './editor'
-import {utils} from 'views'
+import {utils, events} from 'views'
 
+@events({
+  'change': '_onChange'
+})
 export class InputEditor<U> extends Editor<HTMLInputElement, U> {
   private _prev: string
-  get events (): any {
-    return {
-      'change': '_onChange'
-    }
-  }
+
   setValue(value: U) {
     if (this.el.nodeName === 'INPUT' && !!~['checkbox', 'radio'].indexOf(this.el.type)) {
        this.el.checked = !!value;

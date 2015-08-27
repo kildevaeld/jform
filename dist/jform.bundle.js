@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define(factory);
 	else if(typeof exports === 'object')
-		exports["JForm"] = factory();
+		exports["jform"] = factory();
 	else
-		root["JForm"] = factory();
+		root["jform"] = factory();
 })(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -54,17 +54,16 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/// <reference path="../node_modules/views/views.d.ts" />
-	//// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 	function __export(m) {
 	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	}
-	var form_1 = __webpack_require__(19);
-	var ed = __webpack_require__(20);
-	var validator_1 = __webpack_require__(26);
+	/// <reference path="../node_modules/views/views.d.ts" />
+	var form_1 = __webpack_require__(20);
+	var ed = __webpack_require__(21);
+	var validator_1 = __webpack_require__(27);
 	var editor_1 = __webpack_require__(1);
-	var types_1 = __webpack_require__(23);
-	__export(__webpack_require__(19));
+	var types_1 = __webpack_require__(24);
+	__export(__webpack_require__(20));
 	function create(elm, options) {
 	    if (options === void 0) { options = {}; }
 	    if (typeof elm === 'string') {
@@ -84,7 +83,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.create = create;
 	var editors;
 	(function (editors) {
-	    //export var Editor = Editor
 	    editors.ValidationError = types_1.FormValidationError;
 	    function extend(name, prototype) {
 	        var editor = editor_1.Editor.extend(prototype, {});
@@ -122,7 +120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = new __();
 	};
 	var views_1 = __webpack_require__(2);
-	var Types_1 = __webpack_require__(18);
+	var Types_1 = __webpack_require__(19);
 	var AbstractClassError = (function (_super) {
 	    __extends(AbstractClassError, _super);
 	    function AbstractClassError() {
@@ -170,7 +168,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Editor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
 	    Editor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
 	    Editor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
-	    // no-op
 	    Editor.prototype.validate = function () {
 	        return null;
 	    };
@@ -220,7 +217,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    CollectionEditor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
 	    CollectionEditor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
 	    CollectionEditor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
-	    // no-op
 	    CollectionEditor.prototype.validate = function () {
 	        return null;
 	    };
@@ -244,21 +240,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	}
 	/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
-	__export(__webpack_require__(3));
-	__export(__webpack_require__(8));
-	__export(__webpack_require__(7));
-	__export(__webpack_require__(6));
 	__export(__webpack_require__(5));
 	__export(__webpack_require__(4));
 	__export(__webpack_require__(9));
-	__export(__webpack_require__(10));
-	__export(__webpack_require__(11));
+	__export(__webpack_require__(8));
+	__export(__webpack_require__(7));
+	__export(__webpack_require__(6));
 	__export(__webpack_require__(12));
+	__export(__webpack_require__(11));
+	__export(__webpack_require__(3));
 	__export(__webpack_require__(13));
 	__export(__webpack_require__(14));
 	__export(__webpack_require__(15));
 	__export(__webpack_require__(16));
 	__export(__webpack_require__(17));
+	__export(__webpack_require__(18));
+	__export(__webpack_require__(10));
 
 
 /***/ },
@@ -271,9 +268,149 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var base = __webpack_require__(4);
-	var utils_1 = __webpack_require__(7);
+	/*global View, RegionManager, Region*/
+	var templateview_1 = __webpack_require__(4);
+	var region_manager_1 = __webpack_require__(11);
+	var utils_1 = __webpack_require__(9);
+	var region_1 = __webpack_require__(12);
+	var LayoutView = (function (_super) {
+	    __extends(LayoutView, _super);
+	    /**
+	     * LayoutView
+	     * @param {Object} options options
+	     * @constructor LayoutView
+	     * @extends TemplateView
+	     */
+	    function LayoutView(options) {
+	        // Set region manager
+	        this._regionManager = new region_manager_1.RegionManager();
+	        utils_1.utils.proxy(this, this._regionManager, ['removeRegion', 'removeRegions']);
+	        this._regions = this.getOption('regions', options || {});
+	        _super.call(this, options);
+	    }
+	    Object.defineProperty(LayoutView.prototype, "regions", {
+	        get: function () {
+	            return this._regionManager.regions;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    LayoutView.prototype.render = function (options) {
+	        this.triggerMethod('before:render');
+	        _super.prototype.render.call(this, { silent: true });
+	        this.addRegion(this._regions || {});
+	        this.triggerMethod('render');
+	        return this;
+	    };
+	    /**
+	     * Add one or more regions to the view
+	     * @param {string|RegionMap} name
+	     * @param {Object|string|HTMLElement} def
+	     */
+	    LayoutView.prototype.addRegion = function (name, def) {
+	        var regions = {};
+	        if (typeof name === 'string') {
+	            if (def == null)
+	                throw new Error('add region');
+	            regions[name] = def;
+	        }
+	        else {
+	            regions = name;
+	        }
+	        for (var k in regions) {
+	            var region = region_1.Region.buildRegion(regions[k], this.el);
+	            this._regionManager.addRegion(k, region);
+	        }
+	    };
+	    /**
+	     * Delete one or more regions from the the layoutview
+	     * @param {string|Array<string>} name
+	     */
+	    LayoutView.prototype.removeRegion = function (name) {
+	        this._regionManager.removeRegion(name);
+	    };
+	    LayoutView.prototype.destroy = function () {
+	        _super.prototype.destroy.call(this);
+	        this._regionManager.destroy();
+	    };
+	    return LayoutView;
+	})(templateview_1.TemplateView);
+	exports.LayoutView = LayoutView;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    __.prototype = b.prototype;
+	    d.prototype = new __();
+	};
+	var views = __webpack_require__(5);
+	var debug_1 = __webpack_require__(10);
+	var debug = debug_1.logger('templateview');
+	var TemplateView = (function (_super) {
+	    __extends(TemplateView, _super);
+	    /** TemplateView
+	     * @param {TemplateViewOptions} options
+	     * @extends View
+	     */
+	    function TemplateView(options) {
+	        if (options && options.template) {
+	            this.template = options.template;
+	        }
+	        _super.call(this, options);
+	    }
+	    TemplateView.prototype.getTemplateData = function () {
+	        return {};
+	    };
+	    TemplateView.prototype.render = function (options) {
+	        if (options === void 0) { options = {}; }
+	        if (!options.silent)
+	            this.triggerMethod('before:render');
+	        this.renderTemplate(this.getTemplateData());
+	        if (!options.silent)
+	            this.triggerMethod('render');
+	        return this;
+	    };
+	    TemplateView.prototype.renderTemplate = function (data) {
+	        var template = this.getOption('template');
+	        if (typeof template === 'function') {
+	            debug('%s render template function', this.cid);
+	            template = template.call(this, data);
+	        }
+	        if (template && typeof template === 'string') {
+	            debug('%s attach template: %s', this.cid, template);
+	            this.attachTemplate(template);
+	        }
+	    };
+	    TemplateView.prototype.attachTemplate = function (template) {
+	        this.undelegateEvents();
+	        this.el.innerHTML = template;
+	        this.delegateEvents();
+	    };
+	    return TemplateView;
+	})(views.View);
+	exports.TemplateView = TemplateView;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    __.prototype = b.prototype;
+	    d.prototype = new __();
+	};
+	var base = __webpack_require__(6);
+	var utils_1 = __webpack_require__(9);
+	var debug_1 = __webpack_require__(10);
 	var kUIRegExp = /@ui.([a-zA-Z_\-\$#]+)/i;
+	var debug = debug_1.logger('view');
 	function normalizeUIKeys(obj, uimap) {
 	    /*jshint -W030 */
 	    var o = {}, k, v, ms, sel, ui;
@@ -307,11 +444,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        events = normalizeUIKeys(events, this._ui);
 	        var triggers = this._configureTriggers();
 	        events = utils_1.utils.extend({}, events, triggers);
+	        debug('%s delegate events %j', this.cid, events);
 	        _super.prototype.delegateEvents.call(this, events);
 	        return this;
 	    };
 	    View.prototype.undelegateEvents = function () {
 	        this._unbindUIElements();
+	        debug('%s undelegate events', this.cid);
 	        _super.prototype.undelegateEvents.call(this);
 	        return this;
 	    };
@@ -336,7 +475,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (elm instanceof NodeList) {
 	                    elm = elm[0];
 	                }
+	                debug('added ui element %s %s', k, ui[k]);
 	                _this.ui[k] = elm;
+	            }
+	            else {
+	                console.warn('view ', _this.cid, ': ui element not found ', k, ui[k]);
 	            }
 	        });
 	    };
@@ -363,6 +506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var events = {}, val, key;
 	        for (key in triggers) {
 	            val = triggers[key];
+	            debug('added trigger %s %s', key, val);
 	            events[key] = this._buildViewTrigger(val);
 	        }
 	        return events;
@@ -402,7 +546,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 4 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -411,8 +555,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var object_1 = __webpack_require__(5);
-	var utils_1 = __webpack_require__(7);
+	var object_1 = __webpack_require__(7);
+	var utils_1 = __webpack_require__(9);
+	var debug_1 = __webpack_require__(10);
+	var debug = debug_1.logger('baseview');
 	var paddedLt = /^\s*</;
 	var unbubblebles = 'focus blur change'.split(' ');
 	var viewOptions = ['el', 'id', 'attributes', 'className', 'tagName', 'events'];
@@ -510,6 +656,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        };
 	        /*jshint bitwise: false*/
 	        var useCap = !!~unbubblebles.indexOf(eventName) && selector != null;
+	        debug('%s delegate event %s ', this.cid, eventName);
 	        utils_1.html.addEventListener(this.el, eventName, handler, useCap);
 	        this._domEvents.push({ eventName: eventName, handler: handler, listener: listener, selector: selector });
 	        return handler;
@@ -604,6 +751,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                attrs.id = utils_1.utils.result(this, 'id');
 	            if (this.className)
 	                attrs['class'] = utils_1.utils.result(this, 'className');
+	            debug('%s created element: %s', this.cid, utils_1.utils.result(this, 'tagName') || 'div');
 	            this.setElement(this._createElement(utils_1.utils.result(this, 'tagName') || 'div'));
 	            this._setAttributes(attrs);
 	        }
@@ -642,7 +790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -651,8 +799,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var events_1 = __webpack_require__(6);
-	var utils_1 = __webpack_require__(7);
+	var events_1 = __webpack_require__(8);
+	var utils_1 = __webpack_require__(9);
+	var debug_1 = __webpack_require__(10);
+	var debug = debug_1.logger('object');
 	/** Base object */
 	var BaseObject = (function (_super) {
 	    __extends(BaseObject, _super);
@@ -686,6 +836,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.off();
 	        this._isDestroyed = true;
 	        this.triggerMethod('destroy');
+	        debug("%s destroy", this);
 	        if (typeof Object.freeze) {
 	            Object.freeze(this);
 	        }
@@ -720,7 +871,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports) {
 
 	var idCounter = 0;
@@ -832,7 +983,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports) {
 
 	var ElementProto = (typeof Element !== 'undefined' && Element.prototype) || {};
@@ -1071,6 +1222,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return Array.prototype.slice.call(array);
 	    }
 	    utils.slice = slice;
+	    function flatten(arr) {
+	        return arr.reduce(function (flat, toFlatten) {
+	            return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+	        }, []);
+	    }
+	    utils.flatten = flatten;
 	    function equal(a, b) {
 	        return eq(a, b, [], []);
 	    }
@@ -1353,212 +1510,76 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    __.prototype = b.prototype;
-	    d.prototype = new __();
-	};
-	var views = __webpack_require__(3);
-	var TemplateView = (function (_super) {
-	    __extends(TemplateView, _super);
-	    /** TemplateView
-	     * @param {TemplateViewOptions} options
-	     * @extends View
-	     */
-	    function TemplateView(options) {
-	        if (options && options.template) {
-	            this.template = options.template;
-	        }
-	        _super.call(this, options);
-	    }
-	    TemplateView.prototype.getTemplateData = function () {
-	        return {};
-	    };
-	    TemplateView.prototype.render = function (options) {
-	        if (options === void 0) { options = {}; }
-	        if (!options.silent)
-	            this.triggerMethod('before:render');
-	        this.renderTemplate(this.getTemplateData());
-	        if (!options.silent)
-	            this.triggerMethod('render');
-	        return this;
-	    };
-	    TemplateView.prototype.renderTemplate = function (data) {
-	        var template = this.getOption('template');
-	        if (typeof template === 'function') {
-	            template = template.call(this, data);
-	        }
-	        if (template && typeof template === 'string') {
-	            this.attachTemplate(template);
-	        }
-	    };
-	    TemplateView.prototype.attachTemplate = function (template) {
-	        this.undelegateEvents();
-	        this.el.innerHTML = template;
-	        this.delegateEvents();
-	    };
-	    return TemplateView;
-	})(views.View);
-	exports.TemplateView = TemplateView;
-
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* global BaseClass */
-	/* jshint latedef:nofunc */
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    __.prototype = b.prototype;
-	    d.prototype = new __();
-	};
-	var object_1 = __webpack_require__(5);
-	var utils_1 = __webpack_require__(7);
-	/** Region  */
-	var Region = (function (_super) {
-	    __extends(Region, _super);
-	    /**
-	     * Regions manage a view
-	     * @param {Object} options
-	     * @param {HTMLElement} options.el  A Html element
-	     * @constructor Region
-	     * @extends BaseObject
-	     * @inheritdoc
-	     */
-	    function Region(options) {
-	        this.options = options;
-	        this._el = this.getOption('el');
-	        _super.call(this);
-	    }
-	    Object.defineProperty(Region.prototype, "view", {
-	        get: function () {
-	            return this._view;
-	        },
-	        set: function (view) {
-	            this.show(view);
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(Region.prototype, "el", {
-	        get: function () {
-	            return this._el;
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    /**
-	     * Build region from a definition
-	     * @param {Object|String|Region} def The description of the region
-	     * @return {Region}
-	     */
-	    Region.buildRegion = function (def, context) {
-	        if (context === void 0) { context = null; }
-	        if (def instanceof Region) {
-	            return def;
-	        }
-	        else if (typeof def === 'string') {
-	            return buildBySelector(def, Region, context);
-	        }
-	        else {
-	            return buildByObject(def, context);
-	        }
-	    };
-	    /**
-	   * Show a view in the region.
-	   * This will destroy or remove any existing views.
-	   * @param  {View} view    The view to Show
-	   * @return {Region}       this for chaining.
-	   */
-	    Region.prototype.show = function (view, options) {
-	        var diff = view !== this._view;
-	        if (diff) {
-	            // Remove any containing views
-	            this.empty();
-	            // If the view is destroyed be others
-	            view.once('destroy', this.empty, this);
-	            view.once('render', function () {
-	                utils_1.utils.triggerMethodOn(view, 'show');
-	            });
-	            view.render();
-	            utils_1.utils.triggerMethodOn(view, 'before:show');
-	            this._attachHtml(view);
-	            this._view = view;
-	        }
-	        return this;
-	    };
-	    /**
-	     * Destroy the region, this will remove any views, but not the containing element
-	     * @return {Region} this for chaining
-	     */
-	    Region.prototype.destroy = function () {
-	        this.empty();
-	        _super.prototype.destroy.call(this);
-	    };
-	    /**
-	     * Empty the region. This will destroy any existing view.
-	     * @return {Region} this for chaining;
-	     */
-	    Region.prototype.empty = function () {
-	        if (!this._view)
-	            return;
-	        var view = this._view;
-	        view.off('destroy', this.empty, this);
-	        this.trigger('before:empty', view);
-	        this._destroyView();
-	        this.trigger('empty', view);
-	        delete this._view;
-	        return this;
-	    };
-	    /**
-	     * Attach the view element to the regions element
-	     * @param {View} view
-	     * @private
-	     *
-	     */
-	    Region.prototype._attachHtml = function (view) {
-	        this._el.innerHTML = '';
-	        this._el.appendChild(view.el);
-	    };
-	    Region.prototype._destroyView = function () {
-	        var view = this._view;
-	        if ((view.destroy && typeof view.destroy === 'function') && !view.isDestroyed) {
-	            view.destroy();
-	        }
-	        else if (view.remove && typeof view.remove === 'function') {
-	            view.remove();
-	        }
-	        this._el.innerHTML = '';
-	    };
-	    return Region;
-	})(object_1.BaseObject);
-	exports.Region = Region;
-	function buildByObject(object, context) {
-	    if (object === void 0) { object = {}; }
-	    if (!object.selector)
-	        throw new Error('No selector specified: ' + object);
-	    return buildBySelector(object.selector, object.regionClass || Region, context);
-	}
-	function buildBySelector(selector, Klass, context) {
-	    if (Klass === void 0) { Klass = Region; }
-	    context = context || document;
-	    var el = context.querySelector(selector);
-	    if (!el)
-	        throw new Error('selector must exist in the dom');
-	    return new Klass({
-	        el: el
-	    });
-	}
-
-
-/***/ },
 /* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var utils_1 = __webpack_require__(9);
+	function _log() {
+	    // this hackery is required for IE8/9, where
+	    // the `console.log` function doesn't have 'apply'
+	    return 'object' === typeof console
+	        && console.log
+	        && Function.prototype.apply.call(console.log, console, arguments);
+	}
+	var _debug = false;
+	function debug(should) {
+	    _debug = should;
+	}
+	exports.debug = debug;
+	var formatters = {
+	    j: function (v) {
+	        return JSON.stringify(v);
+	    }
+	};
+	function coerce(val) {
+	    if (val instanceof Error)
+	        return val.stack || val.message;
+	    return val;
+	}
+	function logger(namespace) {
+	    return function () {
+	        var args = [];
+	        for (var _i = 0; _i < arguments.length; _i++) {
+	            args[_i - 0] = arguments[_i];
+	        }
+	        if (!_debug)
+	            return;
+	        args[0] = coerce(args[0]);
+	        if ('string' !== typeof args[0]) {
+	            // anything else let's inspect with %o
+	            args = ['%o'].concat(args);
+	        }
+	        // apply any `formatters` transformations
+	        var index = 0;
+	        args[0] = args[0].replace(/%([a-z%])/g, function (match, format) {
+	            // if we encounter an escaped % then don't increase the array index
+	            if (match === '%%')
+	                return match;
+	            index++;
+	            var formatter = formatters[format];
+	            if ('function' === typeof formatter) {
+	                var val = args[index];
+	                match = formatter.call(self, val);
+	                // now we need to remove `args[index]` since it's inlined in the `format`
+	                args.splice(index, 1);
+	                index--;
+	            }
+	            return match;
+	        });
+	        args = formatArgs(namespace, args);
+	        utils_1.utils.call(_log, null, args);
+	    };
+	}
+	exports.logger = logger;
+	function formatArgs(namespace, args) {
+	    //var args = arguments;
+	    args[0] = '[views:' + namespace + '] ' + args[0];
+	    return args;
+	}
+
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global BaseClass, __has */
@@ -1568,9 +1589,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var object_1 = __webpack_require__(5);
-	var region_1 = __webpack_require__(9);
-	var utils_1 = __webpack_require__(7);
+	var object_1 = __webpack_require__(7);
+	var region_1 = __webpack_require__(12);
+	var utils_1 = __webpack_require__(9);
 	var RegionManager = (function (_super) {
 	    __extends(RegionManager, _super);
 	    /** Region manager
@@ -1664,87 +1685,156 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* global BaseClass */
+	/* jshint latedef:nofunc */
 	var __extends = (this && this.__extends) || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() { this.constructor = d; }
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	/*global View, RegionManager, Region*/
-	var templateview_1 = __webpack_require__(8);
-	var region_manager_1 = __webpack_require__(10);
-	var utils_1 = __webpack_require__(7);
-	var region_1 = __webpack_require__(9);
-	var LayoutView = (function (_super) {
-	    __extends(LayoutView, _super);
+	var object_1 = __webpack_require__(7);
+	var utils_1 = __webpack_require__(9);
+	/** Region  */
+	var Region = (function (_super) {
+	    __extends(Region, _super);
 	    /**
-	     * LayoutView
-	     * @param {Object} options options
-	     * @constructor LayoutView
-	     * @extends TemplateView
+	     * Regions manage a view
+	     * @param {Object} options
+	     * @param {HTMLElement} options.el  A Html element
+	     * @constructor Region
+	     * @extends BaseObject
+	     * @inheritdoc
 	     */
-	    function LayoutView(options) {
-	        // Set region manager
-	        this._regionManager = new region_manager_1.RegionManager();
-	        utils_1.utils.proxy(this, this._regionManager, ['removeRegion', 'removeRegions']);
-	        this._regions = this.getOption('regions', options || {});
-	        _super.call(this, options);
+	    function Region(options) {
+	        this.options = options;
+	        this._el = this.getOption('el');
+	        _super.call(this);
 	    }
-	    Object.defineProperty(LayoutView.prototype, "regions", {
+	    Object.defineProperty(Region.prototype, "view", {
 	        get: function () {
-	            return this._regionManager.regions;
+	            return this._view;
+	        },
+	        set: function (view) {
+	            this.show(view);
 	        },
 	        enumerable: true,
 	        configurable: true
 	    });
-	    LayoutView.prototype.render = function (options) {
-	        this.triggerMethod('before:render');
-	        _super.prototype.render.call(this, { silent: true });
-	        this.addRegion(this._regions || {});
-	        this.triggerMethod('render');
+	    Object.defineProperty(Region.prototype, "el", {
+	        get: function () {
+	            return this._el;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    /**
+	     * Build region from a definition
+	     * @param {Object|String|Region} def The description of the region
+	     * @return {Region}
+	     */
+	    Region.buildRegion = function (def, context) {
+	        if (context === void 0) { context = null; }
+	        if (def instanceof Region) {
+	            return def;
+	        }
+	        else if (typeof def === 'string') {
+	            return buildBySelector(def, Region, context);
+	        }
+	        else {
+	            return buildByObject(def, context);
+	        }
+	    };
+	    /**
+	   * Show a view in the region.
+	   * This will destroy or remove any existing views.
+	   * @param  {View} view    The view to Show
+	   * @return {Region}       this for chaining.
+	   */
+	    Region.prototype.show = function (view, options) {
+	        var diff = view !== this._view;
+	        if (diff) {
+	            // Remove any containing views
+	            this.empty();
+	            // If the view is destroyed be others
+	            view.once('destroy', this.empty, this);
+	            view.render();
+	            utils_1.utils.triggerMethodOn(view, 'before:show');
+	            this._attachHtml(view);
+	            utils_1.utils.triggerMethodOn(view, 'show');
+	            this._view = view;
+	        }
 	        return this;
 	    };
 	    /**
-	     * Add one or more regions to the view
-	     * @param {string|RegionMap} name
-	     * @param {Object|string|HTMLElement} def
+	     * Destroy the region, this will remove any views, but not the containing element
+	     * @return {Region} this for chaining
 	     */
-	    LayoutView.prototype.addRegion = function (name, def) {
-	        var regions = {};
-	        if (typeof name === 'string') {
-	            if (def == null)
-	                throw new Error('add region');
-	            regions[name] = def;
-	        }
-	        else {
-	            regions = name;
-	        }
-	        for (var k in regions) {
-	            var region = region_1.Region.buildRegion(regions[k], this.el);
-	            this._regionManager.addRegion(k, region);
-	        }
+	    Region.prototype.destroy = function () {
+	        this.empty();
+	        _super.prototype.destroy.call(this);
 	    };
 	    /**
-	     * Delete one or more regions from the the layoutview
-	     * @param {string|Array<string>} name
+	     * Empty the region. This will destroy any existing view.
+	     * @return {Region} this for chaining;
 	     */
-	    LayoutView.prototype.removeRegion = function (name) {
-	        this._regionManager.removeRegion(name);
+	    Region.prototype.empty = function () {
+	        if (!this._view)
+	            return;
+	        var view = this._view;
+	        view.off('destroy', this.empty, this);
+	        this.trigger('before:empty', view);
+	        this._destroyView();
+	        this.trigger('empty', view);
+	        delete this._view;
+	        return this;
 	    };
-	    LayoutView.prototype.destroy = function () {
-	        _super.prototype.destroy.call(this);
-	        this._regionManager.destroy();
+	    /**
+	     * Attach the view element to the regions element
+	     * @param {View} view
+	     * @private
+	     *
+	     */
+	    Region.prototype._attachHtml = function (view) {
+	        this._el.innerHTML = '';
+	        this._el.appendChild(view.el);
 	    };
-	    return LayoutView;
-	})(templateview_1.TemplateView);
-	exports.LayoutView = LayoutView;
+	    Region.prototype._destroyView = function () {
+	        var view = this._view;
+	        if ((view.destroy && typeof view.destroy === 'function') && !view.isDestroyed) {
+	            view.destroy();
+	        }
+	        else if (view.remove && typeof view.remove === 'function') {
+	            view.remove();
+	        }
+	        this._el.innerHTML = '';
+	    };
+	    return Region;
+	})(object_1.BaseObject);
+	exports.Region = Region;
+	function buildByObject(object, context) {
+	    if (object === void 0) { object = {}; }
+	    if (!object.selector)
+	        throw new Error('No selector specified: ' + object);
+	    return buildBySelector(object.selector, object.regionClass || Region, context);
+	}
+	function buildBySelector(selector, Klass, context) {
+	    if (Klass === void 0) { Klass = Region; }
+	    context = context || document;
+	    var el = context.querySelector(selector);
+	    if (!el)
+	        throw new Error('selector must exist in the dom');
+	    return new Klass({
+	        el: el
+	    });
+	}
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -1753,8 +1843,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var templateview_1 = __webpack_require__(8);
-	var utils_1 = __webpack_require__(7);
+	var templateview_1 = __webpack_require__(4);
+	var utils_1 = __webpack_require__(9);
 	var DataView = (function (_super) {
 	    __extends(DataView, _super);
 	    /**
@@ -1879,7 +1969,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -1888,9 +1978,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var data_view_1 = __webpack_require__(12);
-	var utils_1 = __webpack_require__(7);
-	var events_1 = __webpack_require__(6);
+	var data_view_1 = __webpack_require__(13);
+	var utils_1 = __webpack_require__(9);
+	var events_1 = __webpack_require__(8);
+	var debug_1 = __webpack_require__(10);
+	var debug = debug_1.logger('collectionview');
 	var Buffer = (function () {
 	    function Buffer() {
 	        this.children = [];
@@ -1962,6 +2054,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	    CollectionView.prototype.renderChildView = function (view, index) {
 	        this.triggerMethod('before:render:child', view);
+	        debug('%s render child: %s', this.cid, view.cid);
 	        view.render();
 	        this._attachHTML(view, index);
 	        this.triggerMethod('render:child', view);
@@ -2027,6 +2120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    CollectionView.prototype._appendChild = function (view, index) {
 	        this._updateIndexes(view, true, index);
 	        this._proxyChildViewEvents(view);
+	        debug('%s append child %s at index: %s', this.cid, view.cid, index);
 	        this.children.push(view);
 	        this.hideEmptyView();
 	        this.renderChildView(view, index);
@@ -2041,6 +2135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	   */
 	    CollectionView.prototype._attachHTML = function (view, index) {
 	        if (this._buffer) {
+	            debug("%s attach to buffer: %s", this.cid, view.cid);
 	            this._buffer.append(view);
 	        }
 	        else {
@@ -2183,7 +2278,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -2192,8 +2287,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var utils_1 = __webpack_require__(7);
-	var object_1 = __webpack_require__(5);
+	var utils_1 = __webpack_require__(9);
+	var object_1 = __webpack_require__(7);
 	var Model = (function (_super) {
 	    __extends(Model, _super);
 	    function Model(attributes, options) {
@@ -2346,7 +2441,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -2355,9 +2450,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
-	var object_1 = __webpack_require__(5);
-	var utils_1 = __webpack_require__(7);
-	var model_1 = __webpack_require__(14);
+	var object_1 = __webpack_require__(7);
+	var utils_1 = __webpack_require__(9);
+	var model_1 = __webpack_require__(15);
 	var setOptions = { add: true, remove: true, merge: true };
 	var addOptions = { add: true, remove: false };
 	var Collection = (function (_super) {
@@ -2631,23 +2726,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.remove(model, options);
 	        utils_1.utils.call(this.trigger, this, utils_1.utils.slice(arguments));
 	    };
+	    Collection.prototype.destroy = function () {
+	        var _this = this;
+	        this.models.forEach(function (m) {
+	            if (typeof m.destroy === 'function' &&
+	                m.collection == _this)
+	                m.destroy();
+	        });
+	        _super.prototype.destroy.call(this);
+	    };
 	    return Collection;
 	})(object_1.BaseObject);
 	exports.Collection = Collection;
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var utils_1 = __webpack_require__(7);
+	var utils_1 = __webpack_require__(9);
 	function attributes(attrs) {
 	    return function (target) {
 	        utils_1.utils.extend(target.prototype, attrs);
@@ -2669,7 +2773,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -2728,7 +2832,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -2738,9 +2842,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = new __();
 	};
 	var views_1 = __webpack_require__(2);
-	var editors = __webpack_require__(20);
-	var Types_1 = __webpack_require__(18);
-	var validator_1 = __webpack_require__(26);
+	var editors = __webpack_require__(21);
+	var Types_1 = __webpack_require__(19);
+	var validator_1 = __webpack_require__(27);
+	views_1.EventEmitter.debugCallback = function (ctorname, name, event, args) {
+	    console.log(name || ctorname, event, args);
+	};
 	function flatten(arr) {
 	    return arr.reduce(function (flat, toFlatten) {
 	        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
@@ -2761,7 +2868,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (err)
 	                errors.push(err);
 	            if (i === len)
-	                return errors.length ? reject(flatten(errors)) : resolve();
+	                return errors.length ? reject(views_1.utils.flatten(errors)) : resolve();
 	            iterator(array[i++]).then(function (r) { next(null, r); }, next);
 	        }
 	        next(null);
@@ -2775,7 +2882,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function done(promise, index) {
 	            promise.then(function (result) {
 	                results[index] = result;
-	                //console.log('count',count)
 	                if ((--count) === 0)
 	                    return errors.length ? reject(flatten(errors)) : resolve(results.length ? results : null);
 	            }, function (err) {
@@ -2797,6 +2903,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        _super.call(this, options);
 	        this.strict = options.strict || this.strict || false;
+	        this.autoValidate = options.autoValidate || this.autoValidate || false;
 	        this._validator = options.validator || new validator_1.Validator();
 	        this._validations = {};
 	    }
@@ -2829,7 +2936,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        configurable: true
 	    });
 	    Form.prototype.setValue = function (values) {
-	        this.trigger("before:setvalue");
+	        this.trigger("before:setvalue", values);
 	        for (var key in values) {
 	            if (this.editors[key]) {
 	                this.trigger('before:setvalue:' + key);
@@ -2886,35 +2993,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var msg = error.message || validator_1.Validator.messages[error.name];
 	                error.message = renderMessage(editor, msg);
 	            });
-	            throw new Types_1.FormEditorValidationError(editor.name, errors);
+	            var e = new Types_1.FormEditorValidationError(editor.name, errors);
+	            editor.trigger('invalid', e);
+	            throw e;
 	        });
 	    };
 	    Form.prototype.validate = function () {
 	        var _this = this;
-	        var editors = views_1.utils.values(this.editors);
-	        var self = this;
-	        return asyncEach(editors, function (editor) {
-	            var e = validator_1.errorToPromise(editor.validate());
-	            var promises = [];
-	            if (e)
-	                promises.push(e);
-	            if (_this._validations[editor.name]) {
-	                var value = editor.getValue();
-	                var p = _this._validations[editor.name].map(function (v) {
-	                    return validator_1.errorToPromise(_this._validator.validate(editor.el, value, v));
-	                });
-	                promises = promises.concat(p);
-	            }
-	            return views_1.utils.objectToPromise((_a = {}, _a[editor.name] = all(promises), _a)).catch(function (err) {
-	                throw new Types_1.FormEditorValidationError(editor.name, err);
-	            });
-	            var _a;
-	        }, this, true).catch(function (errors) {
+	        var names = Object.keys(this.editors);
+	        return asyncEach(names, function (name) {
+	            return _this.validateEditor.call(_this, name);
+	        }, this, true).then(function (x) { return null; })
+	            .catch(function (e) {
 	            var map = {};
-	            errors.forEach(function (err) {
-	                map[err.name] = err.errors.map(function (e) {
-	                    return { message: renderMessage(_this.editors[err.name], e.message || validator_1.Validator.messages[e.name]), value: e.value, name: e.name };
-	                });
+	            e.forEach(function (e) {
+	                console.log(e);
+	                map[e.name] = e;
 	            });
 	            return map;
 	        });
@@ -2953,11 +3047,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this._validations[name_1] = opts.validations;
 	            }
 	            this.listenTo(editor, 'change', this._onEditorChange);
-	            /*if (output[name]) {
-	              let editors = Array.isArray(output[name]) ? output[name] : (output[name] = [output[name]])
-	            } else {
-	      
-	            }*/
+	            this.listenTo(editor, 'invalid', this._onEditorInvalid);
 	            output[name_1] = editor;
 	        }
 	        return output;
@@ -2978,21 +3068,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Form.prototype._onEditorChange = function (editor) {
 	        this.trigger('change', editor);
 	    };
-	    Form.prototype._onEditorInvalid = function (editor, error) {
+	    Form.prototype._onEditorInvalid = function (error) {
+	        var editor = this.editors[error.name];
 	        this.trigger('invalid', editor, error);
 	    };
 	    Form.prototype._getType = function (element) {
 	        if (element.nodeName === 'INPUT') {
-	            return element.type;
+	            return element.type.toLowerCase();
 	        }
 	        else {
 	            return element.nodeName.toLowerCase();
 	        }
 	    };
 	    Form.prototype.destroy = function () {
-	        for (var key in this._editors) {
-	            this._editors[key].destroy();
-	        }
+	        this._destroyEditors();
 	        _super.prototype.destroy.call(this);
 	    };
 	    return Form;
@@ -3001,14 +3090,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/// <reference path="../../node_modules/views/views.d.ts" />
-	var input_editor_1 = __webpack_require__(21);
-	var list_1 = __webpack_require__(22);
-	var number_1 = __webpack_require__(24);
-	var select_1 = __webpack_require__(25);
+	var input_editor_1 = __webpack_require__(22);
+	var list_1 = __webpack_require__(23);
+	var number_1 = __webpack_require__(25);
+	var select_1 = __webpack_require__(26);
 	var editors = {
 	    input: input_editor_1.InputEditor,
 	    text: input_editor_1.InputEditor,
@@ -3034,7 +3123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -3043,6 +3132,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
+	var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+	    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") return Reflect.decorate(decorators, target, key, desc);
+	    switch (arguments.length) {
+	        case 2: return decorators.reduceRight(function(o, d) { return (d && d(o)) || o; }, target);
+	        case 3: return decorators.reduceRight(function(o, d) { return (d && d(target, key)), void 0; }, void 0);
+	        case 4: return decorators.reduceRight(function(o, d) { return (d && d(target, key, o)) || o; }, desc);
+	    }
+	};
+	var __metadata = (this && this.__metadata) || function (k, v) {
+	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
 	var editor_1 = __webpack_require__(1);
 	var views_1 = __webpack_require__(2);
 	var InputEditor = (function (_super) {
@@ -3050,15 +3150,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function InputEditor() {
 	        _super.apply(this, arguments);
 	    }
-	    Object.defineProperty(InputEditor.prototype, "events", {
-	        get: function () {
-	            return {
-	                'change': '_onChange'
-	            };
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
 	    InputEditor.prototype.setValue = function (value) {
 	        if (this.el.nodeName === 'INPUT' && !!~['checkbox', 'radio'].indexOf(this.el.type)) {
 	            this.el.checked = !!value;
@@ -3089,13 +3180,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        this.triggerChange();
 	    };
+	    InputEditor = __decorate([
+	        views_1.events({
+	            'change': '_onChange'
+	        }), 
+	        __metadata('design:paramtypes', [])
+	    ], InputEditor);
 	    return InputEditor;
 	})(editor_1.Editor);
 	exports.InputEditor = InputEditor;
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -3105,8 +3202,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = new __();
 	};
 	var views_1 = __webpack_require__(2);
-	var types_1 = __webpack_require__(23);
-	var Template = "\n<select></select>\n<ul class=\"selected-list\"></ul>\n";
+	var types_1 = __webpack_require__(24);
 	var SelectView = views_1.CollectionView.extend({
 	    tagName: 'select',
 	    events: {
@@ -3217,7 +3313,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -3276,7 +3372,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -3302,11 +3398,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(NumberEditor, _super);
 	    function NumberEditor(options) {
 	        _super.call(this, options);
-	        this._floating = true; // options.float == null ? false : options.float
+	        this._floating = options.float == null ? false : options.float;
 	    }
 	    NumberEditor.prototype._onKeyPress = function (e) {
 	        var real_val = String.fromCharCode(e.which), cur_val = this.el.value;
-	        // backspace
 	        if (e.which == 8)
 	            real_val = real_val.substr(0, real_val.length - 2);
 	        if (!~cur_val.indexOf(',') && real_val === ',' && this._floating) {
@@ -3348,7 +3443,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __extends = (this && this.__extends) || function (d, b) {
@@ -3410,11 +3505,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/// <reference path="../node_modules/views/views.d.ts" />
-	var types_1 = __webpack_require__(23);
+	var types_1 = __webpack_require__(24);
 	var views_1 = __webpack_require__(2);
 	function errorToPromise(err) {
 	    if (err instanceof Error || err instanceof types_1.FormValidationError) {

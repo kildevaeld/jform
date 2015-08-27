@@ -54,11 +54,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/// <reference path="../node_modules/views/views.d.ts" />
-	//// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 	function __export(m) {
 	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	}
+	/// <reference path="../node_modules/views/views.d.ts" />
 	var form_1 = __webpack_require__(4);
 	var ed = __webpack_require__(5);
 	var validator_1 = __webpack_require__(11);
@@ -84,7 +83,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.create = create;
 	var editors;
 	(function (editors) {
-	    //export var Editor = Editor
 	    editors.ValidationError = types_1.FormValidationError;
 	    function extend(name, prototype) {
 	        var editor = editor_1.Editor.extend(prototype, {});
@@ -170,7 +168,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Editor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
 	    Editor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
 	    Editor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
-	    // no-op
 	    Editor.prototype.validate = function () {
 	        return null;
 	    };
@@ -220,7 +217,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    CollectionEditor.prototype.setValue = function (value) { throw new AbstractClassError("setValue not implemented"); };
 	    CollectionEditor.prototype.getValue = function () { throw new AbstractClassError("getValue not implemented"); };
 	    CollectionEditor.prototype.clear = function () { throw new AbstractClassError("clear not implemented"); };
-	    // no-op
 	    CollectionEditor.prototype.validate = function () {
 	        return null;
 	    };
@@ -315,6 +311,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var editors = __webpack_require__(5);
 	var Types_1 = __webpack_require__(3);
 	var validator_1 = __webpack_require__(11);
+	views_1.EventEmitter.debugCallback = function (ctorname, name, event, args) {
+	    console.log(name || ctorname, event, args);
+	};
 	function flatten(arr) {
 	    return arr.reduce(function (flat, toFlatten) {
 	        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
@@ -335,7 +334,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (err)
 	                errors.push(err);
 	            if (i === len)
-	                return errors.length ? reject(flatten(errors)) : resolve();
+	                return errors.length ? reject(views_1.utils.flatten(errors)) : resolve();
 	            iterator(array[i++]).then(function (r) { next(null, r); }, next);
 	        }
 	        next(null);
@@ -349,7 +348,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function done(promise, index) {
 	            promise.then(function (result) {
 	                results[index] = result;
-	                //console.log('count',count)
 	                if ((--count) === 0)
 	                    return errors.length ? reject(flatten(errors)) : resolve(results.length ? results : null);
 	            }, function (err) {
@@ -371,6 +369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        _super.call(this, options);
 	        this.strict = options.strict || this.strict || false;
+	        this.autoValidate = options.autoValidate || this.autoValidate || false;
 	        this._validator = options.validator || new validator_1.Validator();
 	        this._validations = {};
 	    }
@@ -403,7 +402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        configurable: true
 	    });
 	    Form.prototype.setValue = function (values) {
-	        this.trigger("before:setvalue");
+	        this.trigger("before:setvalue", values);
 	        for (var key in values) {
 	            if (this.editors[key]) {
 	                this.trigger('before:setvalue:' + key);
@@ -460,35 +459,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var msg = error.message || validator_1.Validator.messages[error.name];
 	                error.message = renderMessage(editor, msg);
 	            });
-	            throw new Types_1.FormEditorValidationError(editor.name, errors);
+	            var e = new Types_1.FormEditorValidationError(editor.name, errors);
+	            editor.trigger('invalid', e);
+	            throw e;
 	        });
 	    };
 	    Form.prototype.validate = function () {
 	        var _this = this;
-	        var editors = views_1.utils.values(this.editors);
-	        var self = this;
-	        return asyncEach(editors, function (editor) {
-	            var e = validator_1.errorToPromise(editor.validate());
-	            var promises = [];
-	            if (e)
-	                promises.push(e);
-	            if (_this._validations[editor.name]) {
-	                var value = editor.getValue();
-	                var p = _this._validations[editor.name].map(function (v) {
-	                    return validator_1.errorToPromise(_this._validator.validate(editor.el, value, v));
-	                });
-	                promises = promises.concat(p);
-	            }
-	            return views_1.utils.objectToPromise((_a = {}, _a[editor.name] = all(promises), _a)).catch(function (err) {
-	                throw new Types_1.FormEditorValidationError(editor.name, err);
-	            });
-	            var _a;
-	        }, this, true).catch(function (errors) {
+	        var names = Object.keys(this.editors);
+	        return asyncEach(names, function (name) {
+	            return _this.validateEditor.call(_this, name);
+	        }, this, true).then(function (x) { return null; })
+	            .catch(function (e) {
 	            var map = {};
-	            errors.forEach(function (err) {
-	                map[err.name] = err.errors.map(function (e) {
-	                    return { message: renderMessage(_this.editors[err.name], e.message || validator_1.Validator.messages[e.name]), value: e.value, name: e.name };
-	                });
+	            e.forEach(function (e) {
+	                console.log(e);
+	                map[e.name] = e;
 	            });
 	            return map;
 	        });
@@ -527,11 +513,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this._validations[name_1] = opts.validations;
 	            }
 	            this.listenTo(editor, 'change', this._onEditorChange);
-	            /*if (output[name]) {
-	              let editors = Array.isArray(output[name]) ? output[name] : (output[name] = [output[name]])
-	            } else {
-	      
-	            }*/
+	            this.listenTo(editor, 'invalid', this._onEditorInvalid);
 	            output[name_1] = editor;
 	        }
 	        return output;
@@ -552,21 +534,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Form.prototype._onEditorChange = function (editor) {
 	        this.trigger('change', editor);
 	    };
-	    Form.prototype._onEditorInvalid = function (editor, error) {
+	    Form.prototype._onEditorInvalid = function (error) {
+	        var editor = this.editors[error.name];
 	        this.trigger('invalid', editor, error);
 	    };
 	    Form.prototype._getType = function (element) {
 	        if (element.nodeName === 'INPUT') {
-	            return element.type;
+	            return element.type.toLowerCase();
 	        }
 	        else {
 	            return element.nodeName.toLowerCase();
 	        }
 	    };
 	    Form.prototype.destroy = function () {
-	        for (var key in this._editors) {
-	            this._editors[key].destroy();
-	        }
+	        this._destroyEditors();
 	        _super.prototype.destroy.call(this);
 	    };
 	    return Form;
@@ -617,6 +598,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __.prototype = b.prototype;
 	    d.prototype = new __();
 	};
+	var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+	    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") return Reflect.decorate(decorators, target, key, desc);
+	    switch (arguments.length) {
+	        case 2: return decorators.reduceRight(function(o, d) { return (d && d(o)) || o; }, target);
+	        case 3: return decorators.reduceRight(function(o, d) { return (d && d(target, key)), void 0; }, void 0);
+	        case 4: return decorators.reduceRight(function(o, d) { return (d && d(target, key, o)) || o; }, desc);
+	    }
+	};
+	var __metadata = (this && this.__metadata) || function (k, v) {
+	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
 	var editor_1 = __webpack_require__(1);
 	var views_1 = __webpack_require__(2);
 	var InputEditor = (function (_super) {
@@ -624,15 +616,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function InputEditor() {
 	        _super.apply(this, arguments);
 	    }
-	    Object.defineProperty(InputEditor.prototype, "events", {
-	        get: function () {
-	            return {
-	                'change': '_onChange'
-	            };
-	        },
-	        enumerable: true,
-	        configurable: true
-	    });
 	    InputEditor.prototype.setValue = function (value) {
 	        if (this.el.nodeName === 'INPUT' && !!~['checkbox', 'radio'].indexOf(this.el.type)) {
 	            this.el.checked = !!value;
@@ -663,6 +646,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        this.triggerChange();
 	    };
+	    InputEditor = __decorate([
+	        views_1.events({
+	            'change': '_onChange'
+	        }), 
+	        __metadata('design:paramtypes', [])
+	    ], InputEditor);
 	    return InputEditor;
 	})(editor_1.Editor);
 	exports.InputEditor = InputEditor;
@@ -680,7 +669,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var views_1 = __webpack_require__(2);
 	var types_1 = __webpack_require__(8);
-	var Template = "\n<select></select>\n<ul class=\"selected-list\"></ul>\n";
 	var SelectView = views_1.CollectionView.extend({
 	    tagName: 'select',
 	    events: {
@@ -876,11 +864,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(NumberEditor, _super);
 	    function NumberEditor(options) {
 	        _super.call(this, options);
-	        this._floating = true; // options.float == null ? false : options.float
+	        this._floating = options.float == null ? false : options.float;
 	    }
 	    NumberEditor.prototype._onKeyPress = function (e) {
 	        var real_val = String.fromCharCode(e.which), cur_val = this.el.value;
-	        // backspace
 	        if (e.which == 8)
 	            real_val = real_val.substr(0, real_val.length - 2);
 	        if (!~cur_val.indexOf(',') && real_val === ',' && this._floating) {

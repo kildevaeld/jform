@@ -11,6 +11,7 @@ export interface FormOptions extends TemplateViewOptions {
         [key: string]: IEditorOptions;
     };
     strict?: boolean;
+    autoValidate?: boolean;
     validator?: IValidator;
 }
 export declare type EditorMap = {
@@ -29,6 +30,7 @@ export declare class Form extends TemplateView<HTMLFormElement> {
     private _validator;
     private _validations;
     strict: boolean;
+    autoValidate: boolean;
     constructor(options?: FormOptions);
     render(options: any): any;
     val: FormValueMap;
@@ -44,7 +46,7 @@ export declare class Form extends TemplateView<HTMLFormElement> {
     private _renderEditors();
     private _destroyEditors();
     private _onEditorChange(editor);
-    private _onEditorInvalid(editor, error);
+    private _onEditorInvalid(error);
     private _getType(element);
     destroy(): void;
 }

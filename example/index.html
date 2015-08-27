@@ -47,7 +47,7 @@
 			}
 		});*/
 
-		jform.validators.addMessage('required', 'the field: {{name}} is required')
+		jform.validators.addMessage('required', 'the field: "{{name}}" is required')
 
 
 		let items = [{name: 'test', value: 'test'}]
@@ -75,11 +75,11 @@
 				console.log('errpr', er)
 			})
 			console.log(form.val)
-			form.editors.list._selectView.collection.add({value:'testtest', name: 'raprap'})
+			//form.editors.list._selectView.collection.add({value:'testtest', name: 'raprap'})
 		})
 
 		form.on('change', function (editor) {
-			console.log('editor change', editor.name, editor.getValue())
+			//console.log('editor change', editor.name, editor.getValue())
 		})
 
 		form.val = {first_name:'Lars', last_name: 'Kofoed', age:12, select:{text:'what what', value:'value2'}}

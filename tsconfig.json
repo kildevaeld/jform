@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "target": "es5",
+        "module": "commonjs",
         "isolatedModules": false,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
@@ -9,7 +10,8 @@
         "removeComments": true,
         "noLib": false,
         "preserveConstEnums": true,
-        "suppressImplicitAnyIndexErrors": true
+        "suppressImplicitAnyIndexErrors": true,
+        "rootDir": "./src"
     },
     "filesGlob": [
         "./src/**/*.ts",
@@ -17,10 +19,15 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
-        "./src/Editors.ts",
-        "./src/Form.d.ts",
-        "./src/Form.ts",
-        "./src/Types.ts",
-        "./src/index.ts"
+        "./src/editors/index.ts",
+        "./src/editors/editor.ts",
+        "./src/editors/input-editor.ts",
+        "./src/editors/list.ts",
+        "./src/editors/number.ts",
+        "./src/editors/select.ts",
+        "./src/form.ts",
+        "./src/types.ts",
+        "./src/index.ts",
+        "./src/validator.ts"
     ]
 }

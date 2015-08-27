@@ -1,8 +1,12 @@
-import {TemplateView, TemplateViewOptions, utils} from 'views'
+import {TemplateView, TemplateViewOptions, utils, EventEmitter} from 'views'
 import * as editors from './editors/index'
 import {IEditor} from './editors/editor'
 import {FormError, FormValidationError,FormEditorValidationError, IValidator, IValidation} from './Types'
 import {Validator, errorToPromise} from './validator'
+
+EventEmitter.debugCallback = function (ctorname, name, event, args) {
+  console.log(name||ctorname, event, args)
+}
 
 export interface IEditorOptions extends TemplateViewOptions {
   name: string
@@ -13,6 +17,7 @@ export interface FormOptions extends TemplateViewOptions {
   attribute?: string
   editors?: {[key: string]: IEditorOptions}
   strict?:boolean
+  autoValidate?:boolean
   validator?: IValidator
 }
 
@@ -37,7 +42,7 @@ function asyncEach<T>(array:T[], iterator:(value:T) => Promise<void>, context?:a
       if (err && !accumulate) return reject(err);
       if (err) errors.push(err);
       if (i === len)
-        return errors.length ? reject(flatten(errors)) : resolve();
+        return errors.length ? reject(utils.flatten(errors)) : resolve();
 
       iterator(array[i++]).then(function (r) { next(null, r); }, next);
     }
@@ -60,7 +65,6 @@ function all<T>(array:Promise<T>[]): Promise<T[]> {
     function done (promise:Promise<T>, index:number) {
       promise.then(function (result) {
         results[index] = result;
-        //console.log('count',count)
         if ((--count) === 0)
           return errors.length ? reject(flatten(errors)) : resolve(results.length ? results : null);
       }, function (err) {
@@ -78,7 +82,6 @@ function all<T>(array:Promise<T>[]): Promise<T[]> {
   });
 }
 
-
 export declare type EditorMap = { [key: string]: IEditor }
 
 export declare type FormValueMap = {[key: string]: any}
@@ -93,7 +96,8 @@ export class Form extends TemplateView<HTMLFormElement> {
   private _validations: {[key: string]: IValidation[]}
 
   public strict: boolean
-
+  public autoValidate: boolean
+  
   constructor (options?: FormOptions) {
 
     if (options != null) {
@@ -103,7 +107,8 @@ export class Form extends TemplateView<HTMLFormElement> {
     super(options);
 
     this.strict = options.strict||this.strict||false
-
+    this.autoValidate = options.autoValidate||this.autoValidate||false
+    
     this._validator = options.validator|| new Validator();
     this._validations = {};
 
@@ -129,7 +134,8 @@ export class Form extends TemplateView<HTMLFormElement> {
   }
 
   setValue (values: FormValueMap): any {
-    this.trigger("before:setvalue")
+    
+    this.trigger("before:setvalue", values)
 
     for (let key in values) {
       if (this.editors[key]) {
@@ -182,7 +188,6 @@ export class Form extends TemplateView<HTMLFormElement> {
 
     if (e) promises.push(e);
 
-
     if (this._validations[editor.name]) {
       let value = editor.getValue()
 
@@ -192,52 +197,42 @@ export class Form extends TemplateView<HTMLFormElement> {
 
       promises = promises.concat(p);
     }
-    return all(promises).catch(function (errors) {
+    
+    return all(promises).catch( (errors) => {
       errors.forEach(function (error) {
         let msg = error.message||Validator.messages[error.name]
         error.message = renderMessage(editor, msg)
       })
-      throw new FormEditorValidationError(editor.name, errors)
-    })
+      
+      let e = new FormEditorValidationError(editor.name, errors);
+      
+      editor.trigger('invalid', e)
+      
+      throw e;
+    });
   }
+  
 
   public validate (): Promise<{[key:string]:FormEditorValidationError[]}> {
 
-    let editors: IEditor[] = utils.values<IEditor>(this.editors);
-    var self = this;
-    return asyncEach(editors, (editor) => {
-
-      let e = errorToPromise(editor.validate());
-      let promises = [];
-
-      if (e) promises.push(e);
-
-
-      if (this._validations[editor.name]) {
-        let value = editor.getValue()
-        let p = this._validations[editor.name].map((v) => {
-          return errorToPromise(this._validator.validate(editor.el, value, v))
-        });
-
-        promises = promises.concat(p);
-      }
-
-      return utils.objectToPromise({[editor.name]:<any>all(promises)}).catch(function (err) {
-        throw new FormEditorValidationError(editor.name, err)
-      });
-    }, this, true).catch( (errors) => {
-      let map = {}
-      errors.forEach((err) => {
-        map[err.name] = err.errors.map( (e) => {
-          return {message:renderMessage(this.editors[err.name],e.message||Validator.messages[e.name]), value:e.value, name:e.name}
-        });
-      });
-
+    
+    let names = Object.keys(this.editors)
+    
+    return asyncEach(names, (name) => {
+      return this.validateEditor.call(this, name)
+    }, this, true).then(x => null)
+    .catch( e => {
+      let map = {};
+      
+      e.forEach( e => {
+        console.log(e)
+        map[e.name] = e
+      })
+      
       return map;
-    })
-
+    });
+   
   }
-
 
   private _getElements (formEl: HTMLElement, options: FormOptions): {[key: string]: IEditor} {
 
@@ -290,12 +285,8 @@ export class Form extends TemplateView<HTMLFormElement> {
       }
 
       this.listenTo(editor, 'change', this._onEditorChange);
-
-      /*if (output[name]) {
-        let editors = Array.isArray(output[name]) ? output[name] : (output[name] = [output[name]])
-      } else {
-
-      }*/
+      this.listenTo(editor, 'invalid', this._onEditorInvalid);
+      
       output[name] = editor;
 
     }
@@ -324,24 +315,22 @@ export class Form extends TemplateView<HTMLFormElement> {
     this.trigger('change', editor)
   }
 
-  private _onEditorInvalid(editor: IEditor, error: FormValidationError) {
+  private _onEditorInvalid(error: FormValidationError) {
+    let editor = this.editors[error.name]
     this.trigger('invalid', editor, error)
   }
 
   private _getType(element:HTMLElement): string {
 
     if (element.nodeName === 'INPUT') {
-      return (<HTMLInputElement>element).type;
+      return (<HTMLInputElement>element).type.toLowerCase();
     } else {
       return element.nodeName.toLowerCase();
     }
   }
 
   destroy () {
-    for (let key in this._editors) {
-      this._editors[key].destroy()
-    }
-
+    this._destroyEditors();
     super.destroy()
 
   }
