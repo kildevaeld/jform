@@ -135,7 +135,7 @@ export class Form extends TemplateView<HTMLFormElement> {
         try {
           this.editors[key].setValue(values[key])
         } catch (e) {
-
+          throw e
         }
 
         this.trigger('setvalue:' + key)
@@ -216,7 +216,6 @@ export class Form extends TemplateView<HTMLFormElement> {
       let map = {};
 
       e.forEach( e => {
-        console.log(e)
         map[e.name] = e
       })
 

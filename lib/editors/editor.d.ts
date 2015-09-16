@@ -1,5 +1,11 @@
 import { TemplateView, ViewOptions, IView, IEventEmitter, CollectionView, CollectionOptions, IModel } from 'views';
-import { FormValidationError } from '../Types';
+import { FormError, FormValidationError } from '../Types';
+export declare class EditorError extends FormError {
+    name: string;
+}
+export interface EditorContructor {
+    new (options?: any): IEditor;
+}
 export interface IEditor extends IView, IEventEmitter {
     name: string;
     label?: string;

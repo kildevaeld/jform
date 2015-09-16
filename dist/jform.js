@@ -81,12 +81,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new form_1.Form(options);
 	}
 	exports.create = create;
+	function createError(msg) {
+	    return new ed.EditorError(msg);
+	}
+	exports.createError = createError;
 	var editors;
 	(function (editors) {
 	    editors.ValidationError = types_1.FormValidationError;
-	    function extend(name, prototype) {
-	        var editor = editor_1.Editor.extend(prototype, {});
-	        ed.set(editor, name);
+	    function extend(name, prototype, staticProps) {
+	        var editor = editor_1.Editor.extend(prototype, staticProps);
+	        editors.set(name, editor);
 	        return editor;
 	    }
 	    editors.extend = extend;
@@ -94,6 +98,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return ed.get(name);
 	    }
 	    editors.get = get;
+	    function set(name, editor) {
+	        ed.set(editor, name);
+	    }
+	    editors.set = set;
 	})(editors = exports.editors || (exports.editors = {}));
 	var validators;
 	(function (validators) {
@@ -137,6 +145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return EditorError;
 	})(Types_1.FormError);
+	exports.EditorError = EditorError;
 	var Editor = (function (_super) {
 	    __extends(Editor, _super);
 	    function Editor(options) {
@@ -402,6 +411,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    this.editors[key].setValue(values[key]);
 	                }
 	                catch (e) {
+	                    throw e;
 	                }
 	                this.trigger('setvalue:' + key);
 	            }
@@ -465,7 +475,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            .catch(function (e) {
 	            var map = {};
 	            e.forEach(function (e) {
-	                console.log(e);
 	                map[e.name] = e;
 	            });
 	            return map;
@@ -551,12 +560,16 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
+	function __export(m) {
+	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	}
 	/// <reference path="../../node_modules/views/views.d.ts" />
 	var input_editor_1 = __webpack_require__(6);
 	var list_1 = __webpack_require__(7);
 	var number_1 = __webpack_require__(9);
 	var select_1 = __webpack_require__(10);
-	var editors = {
+	__export(__webpack_require__(1));
+	exports.editors = {
 	    input: input_editor_1.InputEditor,
 	    text: input_editor_1.InputEditor,
 	    checkbox: input_editor_1.InputEditor,
@@ -571,11 +584,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	exports.has = has;
 	function get(editor) {
-	    return editors[editor];
+	    return exports.editors[editor];
 	}
 	exports.get = get;
 	function set(editor, name) {
-	    editors[name] = editor;
+	    exports.editors[name] = editor;
 	}
 	exports.set = set;
 

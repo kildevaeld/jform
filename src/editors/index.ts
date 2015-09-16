@@ -5,7 +5,10 @@ import {NumberEditor} from './number'
 import {SelectEditor} from './select'
 import {IEditor} from './editor'
 
-const editors = {
+
+export * from './editor'
+
+export const editors = {
   input: InputEditor,
   text: InputEditor,
   checkbox: InputEditor,

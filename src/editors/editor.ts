@@ -8,8 +8,12 @@ class AbstractClassError extends FormError {
   name = "EditorImplementationError"
 }
 
-class EditorError extends FormError {
+export class EditorError extends FormError {
   name = 'EditorError'
+}
+
+export interface EditorContructor {
+  new (options?:any): IEditor
 }
 
 export interface IEditor extends IView, IEventEmitter {

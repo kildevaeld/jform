@@ -7,26 +7,26 @@
         <link rel="stylesheet" href="node_modules/mocha/mocha.css" />
     </head>
     <body>
-        <script src="node_modules/should/should.js"></script> 
-        <script src="node_modules/mocha/mocha.js"></script> 
+        <script src="node_modules/should/should.js"></script>
+        <script src="node_modules/mocha/mocha.js"></script>
 				<script src="node_modules/sinon/pkg/sinon.js"></script>
-        <script>mocha.setup('bdd')</script> 
+        <script>mocha.setup('bdd')</script>
         <script src="node_modules/mocha-sinon/mocha-sinon.js"></script>
 				<script src="dist/jform.bundle.js"></script>
 				<!-- inject:js -->
 				<!-- endinject -->
-				
+
 				<script>
             describe('true', function () {
                 it('should be true', function () {
                     true.should.equal(true);
                 });
             });
-        </script> 
+        </script>
         <div id="mocha"></div>
 				<script>
             mocha.run();
-        </script> 
-				
+        </script>
+
     </body>
 </html>

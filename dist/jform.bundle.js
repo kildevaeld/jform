@@ -81,12 +81,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new form_1.Form(options);
 	}
 	exports.create = create;
+	function createError(msg) {
+	    return new ed.EditorError(msg);
+	}
+	exports.createError = createError;
 	var editors;
 	(function (editors) {
 	    editors.ValidationError = types_1.FormValidationError;
-	    function extend(name, prototype) {
-	        var editor = editor_1.Editor.extend(prototype, {});
-	        ed.set(editor, name);
+	    function extend(name, prototype, staticProps) {
+	        var editor = editor_1.Editor.extend(prototype, staticProps);
+	        editors.set(name, editor);
 	        return editor;
 	    }
 	    editors.extend = extend;
@@ -94,6 +98,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return ed.get(name);
 	    }
 	    editors.get = get;
+	    function set(name, editor) {
+	        ed.set(editor, name);
+	    }
+	    editors.set = set;
 	})(editors = exports.editors || (exports.editors = {}));
 	var validators;
 	(function (validators) {
@@ -137,6 +145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return EditorError;
 	})(Types_1.FormError);
+	exports.EditorError = EditorError;
 	var Editor = (function (_super) {
 	    __extends(Editor, _super);
 	    function Editor(options) {
@@ -986,7 +995,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 9 */
 /***/ function(module, exports) {
 
-	var ElementProto = (typeof Element !== 'undefined' && Element.prototype) || {};
+	/* WEBPACK VAR INJECTION */(function(global) {var ElementProto = (typeof Element !== 'undefined' && Element.prototype) || {};
 	var matchesSelector = ElementProto.matches ||
 	    ElementProto.webkitMatchesSelector ||
 	    ElementProto.mozMatchesSelector ||
@@ -1001,6 +1010,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	var elementRemoveEventListener = ElementProto.removeEventListener || function (eventName, listener) {
 	    return this.detachEvent('on' + eventName, listener);
 	};
+	var transitionEndEvent = (function transitionEnd() {
+	    var el = document.createElement('bootstrap');
+	    var transEndEventNames = {
+	        'WebkitTransition': 'webkitTransitionEnd',
+	        'MozTransition': 'transitionend',
+	        'OTransition': 'oTransitionEnd otransitionend',
+	        'transition': 'transitionend'
+	    };
+	    for (var name in transEndEventNames) {
+	        if (el.style[name] !== undefined) {
+	            return transEndEventNames[name];
+	        }
+	    }
+	    return null; // explicit for ie8 (  ._.)
+	});
+	var animationEndEvent = (function animationEnd() {
+	    var el = document.createElement('bootstrap');
+	    var transEndEventNames = {
+	        'WebkitAnimation': 'webkitAnimationEnd',
+	        'MozAnimation': 'animationend',
+	        'OTransition': 'oAnimationEnd oanimationend',
+	        'animation': 'animationend'
+	    };
+	    for (var name in transEndEventNames) {
+	        if (el.style[name] !== undefined) {
+	            return transEndEventNames[name];
+	        }
+	    }
+	    return null; // explicit for ie8 (  ._.)
+	});
 	function extend(protoProps, staticProps) {
 	    var parent = this;
 	    var child;
@@ -1076,6 +1115,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 	    html.selectionStart = selectionStart;
+	    var _events = {
+	        animationEnd: null,
+	        transitionEnd: null
+	    };
+	    function transitionEnd(elm, fn, ctx, duration) {
+	        var event = _events.transitionEnd || (_events.transitionEnd = transitionEndEvent());
+	        var callback = function (e) {
+	            removeEventListener(elm, event, callback);
+	            fn.call(ctx, e);
+	        };
+	        addEventListener(elm, event, callback);
+	    }
+	    html.transitionEnd = transitionEnd;
+	    function animationEnd(elm, fn, ctx, duration) {
+	        var event = _events.animationEnd || (_events.animationEnd = animationEndEvent());
+	        var callback = function (e) {
+	            removeEventListener(elm, event, callback);
+	            fn.call(ctx, e);
+	        };
+	        addEventListener(elm, event, callback);
+	    }
+	    html.animationEnd = animationEnd;
 	})(html = exports.html || (exports.html = {}));
 	var nativeBind = Function.prototype.bind;
 	var noop = function () { };
@@ -1083,6 +1144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/** @module utils */
 	var utils;
 	(function (utils) {
+	    utils.Promise = global.Promise;
 	    function camelcase(input) {
 	        return input.toLowerCase().replace(/-(.)/g, function (match, group1) {
 	            return group1.toUpperCase();
@@ -1300,7 +1362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (isObject(obj)) {
 	            return objectToPromise.call(this, obj);
 	        }
-	        return Promise.resolve(obj);
+	        return utils.Promise.resolve(obj);
 	    }
 	    utils.toPromise = toPromise;
 	    /**
@@ -1313,7 +1375,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function thunkToPromise(fn) {
 	        /* jshint validthis:true */
 	        var ctx = this;
-	        return new Promise(function (resolve, reject) {
+	        return new utils.Promise(function (resolve, reject) {
 	            fn.call(ctx, function (err, res) {
 	                if (err)
 	                    return reject(err);
@@ -1334,7 +1396,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function arrayToPromise(obj) {
 	        /* jshint validthis:true */
-	        return Promise.all(obj.map(toPromise, this));
+	        return utils.Promise.all(obj.map(toPromise, this));
 	    }
 	    utils.arrayToPromise = arrayToPromise;
 	    /**
@@ -1358,7 +1420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            else
 	                results[key] = obj[key];
 	        }
-	        return Promise.all(promises).then(function () {
+	        return utils.Promise.all(promises).then(function () {
 	            return results;
 	        });
 	        function defer(promise, key) {
@@ -1376,7 +1438,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            args[_i - 2] = arguments[_i];
 	        }
 	        var ret = {};
-	        ret.promise = new Promise(function (resolve, reject) {
+	        ret.promise = new utils.Promise(function (resolve, reject) {
 	            ret.resolve = resolve;
 	            ret.reject = reject;
 	            ret.done = function (err, result) { if (err)
@@ -1407,6 +1469,53 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    utils.delay = delay;
 	    ;
+	    function eachAsync(array, iterator, context, accumulate) {
+	        if (accumulate === void 0) { accumulate = false; }
+	        /*return new Promise<void>(function(resolve, reject) {
+	          let i = 0, len = array.length,
+	            errors = [];
+	          function next(err, result?: any) {
+	            if (err && !accumulate) return reject(err);
+	            if (err) errors.push(err);
+	            if (i === len)
+	              return errors.length ? reject(flatten(errors)) : resolve();
+	    
+	            iterator(array[i++]).then(function(r) { next(null, r); }, next);
+	          }
+	    
+	          next(null);
+	    
+	        });*/
+	        return mapAsync(array, iterator, context, accumulate)
+	            .then(function () { return void 0; });
+	    }
+	    utils.eachAsync = eachAsync;
+	    function mapAsync(array, iterator, context, accumulate) {
+	        if (accumulate === void 0) { accumulate = false; }
+	        return new utils.Promise(function (resolve, reject) {
+	            var i = 0, len = array.length, errors = [], results = [];
+	            function next(err, result) {
+	                if (err && !accumulate)
+	                    return reject(err);
+	                if (err)
+	                    errors.push(err);
+	                if (i === len)
+	                    return errors.length ? reject(flatten(errors)) : resolve(results);
+	                var ret = iterator.call(context, array[i++]);
+	                if (isPromise(ret)) {
+	                    ret.then(function (r) { results.push(r); next(null, r); }, next);
+	                }
+	                else if (ret instanceof Error) {
+	                    next(ret);
+	                }
+	                else {
+	                    next(null);
+	                }
+	            }
+	            next(null);
+	        });
+	    }
+	    utils.mapAsync = mapAsync;
 	})(utils = exports.utils || (exports.utils = {}));
 	function eq(a, b, aStack, bStack) {
 	    // Identical objects are equal. `0 === -0`, but they aren't identical.
@@ -1508,6 +1617,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	;
 
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
 /* 10 */
@@ -1537,7 +1647,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return val;
 	}
 	function logger(namespace) {
-	    return function () {
+	    var fn = function () {
 	        var args = [];
 	        for (var _i = 0; _i < arguments.length; _i++) {
 	            args[_i - 0] = arguments[_i];
@@ -1569,6 +1679,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        args = formatArgs(namespace, args);
 	        utils_1.utils.call(_log, null, args);
 	    };
+	    return fn;
 	}
 	exports.logger = logger;
 	function formatArgs(namespace, args) {
@@ -2060,8 +2171,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.triggerMethod('render:child', view);
 	    };
 	    CollectionView.prototype.showEmptyView = function () {
+	        var EmptyView = this.getOption('emptyView');
+	        if (EmptyView == null)
+	            return;
+	        var view = new EmptyView();
+	        this._emptyView = view;
+	        this._container.appendChild(view.render().el);
 	    };
 	    CollectionView.prototype.hideEmptyView = function () {
+	        if (!this._emptyView)
+	            return;
+	        this._emptyView.destroy();
+	        this._emptyView.remove();
+	        this._emptyView = void 0;
 	    };
 	    CollectionView.prototype.destroyChildren = function () {
 	        if (this._container) {
@@ -2936,6 +3058,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    this.editors[key].setValue(values[key]);
 	                }
 	                catch (e) {
+	                    throw e;
 	                }
 	                this.trigger('setvalue:' + key);
 	            }
@@ -2999,7 +3122,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            .catch(function (e) {
 	            var map = {};
 	            e.forEach(function (e) {
-	                console.log(e);
 	                map[e.name] = e;
 	            });
 	            return map;
@@ -3085,12 +3207,16 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
+	function __export(m) {
+	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	}
 	/// <reference path="../../node_modules/views/views.d.ts" />
 	var input_editor_1 = __webpack_require__(22);
 	var list_1 = __webpack_require__(23);
 	var number_1 = __webpack_require__(25);
 	var select_1 = __webpack_require__(26);
-	var editors = {
+	__export(__webpack_require__(1));
+	exports.editors = {
 	    input: input_editor_1.InputEditor,
 	    text: input_editor_1.InputEditor,
 	    checkbox: input_editor_1.InputEditor,
@@ -3105,11 +3231,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	exports.has = has;
 	function get(editor) {
-	    return editors[editor];
+	    return exports.editors[editor];
 	}
 	exports.get = get;
 	function set(editor, name) {
-	    editors[name] = editor;
+	    exports.editors[name] = editor;
 	}
 	exports.set = set;
 

@@ -21,17 +21,28 @@ export function create (elm:FormOptions|string|HTMLElement, options:FormOptions=
 	return new Form(options)
 }
 
+export function createError(msg:string): Error {
+	return new ed.EditorError(msg)
+}
+
+
 export module editors {
+	
+	//export var EditorError = ed.EditorError
 
 	export var ValidationError = FormValidationError
-	export function extend(name: string, prototype: any): IEditor {
-		let editor = Editor.extend(prototype,{})
-		ed.set(editor, name)
+	export function extend(name: string, prototype: any, staticProps?: any): IEditor {
+		let editor = Editor.extend(prototype, staticProps)
+		editors.set(name, editor)
 		return editor
 	}
 
 	export function get(name:string): IEditor {
 		return ed.get(name)
+	}
+	
+	export function set(name:string, editor: ed.EditorContructor) {
+		ed.set(<any>editor, name)
 	}
 }
 
